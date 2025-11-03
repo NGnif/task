@@ -1,4 +1,9 @@
 import os
+from dotenv import load_dotenv
+
+# Load .env from project root for local development
+_ROOT = os.path.dirname(__file__)
+load_dotenv(os.path.join(_ROOT, ".env"), override=False)
 
 
 class Config:
@@ -17,4 +22,3 @@ class Config:
         SQLALCHEMY_DATABASE_URI = f"sqlite:///{DATABASE_URL}"
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-
