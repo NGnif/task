@@ -241,6 +241,28 @@ def toggle_task(task_id: int):
     return redirect(url_for("main.tasks"))
 
 
+@main_bp.route("/tasks/<int:task_id>/progress", methods=["POST"])
+@login_required
+def progress_task(task_id: int):
+    task = Task.query.get_or_404(task_id)
+    # Owner or assigned worker can update between todo <-> in_progress
+    if not (current_user.is_owner() or task.assignee_id == current_user.id):
+        flash("You do not have permission to update this task")
+        return redirect(url_for("main.tasks"))
+
+    # Workers cannot change tasks that are already done
+    if task.status == "done" and not current_user.is_owner():
+        flash("Only the owner can modify completed tasks")
+        return redirect(url_for("main.tasks"))
+
+    state = (request.form.get("state") or "").strip()
+    if state not in ("todo", "in_progress"):
+        state = "in_progress" if task.status == "todo" else "todo"
+    task.status = state
+    db.session.commit()
+    return redirect(url_for("main.tasks"))
+
+
 @main_bp.route("/tasks/<int:task_id>/delete", methods=["POST"]) 
 @login_required
 def delete_task(task_id: int):

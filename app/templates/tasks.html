@@ -57,6 +57,17 @@
           <td class="actions">
             {% if is_owner %}
               <a class="btn" href="{{ url_for('main.edit_task', task_id=tsk.id) }}">{{ t('edit') }}</a>
+              {% if tsk.status != 'done' %}
+                <form method="post" action="{{ url_for('main.progress_task', task_id=tsk.id) }}" style="display:inline">
+                  {% if tsk.status == 'todo' %}
+                    <input type="hidden" name="state" value="in_progress" />
+                    <button class="btn" type="submit">{{ t('start') }}</button>
+                  {% else %}
+                    <input type="hidden" name="state" value="todo" />
+                    <button class="btn" type="submit">{{ t('back_to_todo') }}</button>
+                  {% endif %}
+                </form>
+              {% endif %}
               <form method="post" action="{{ url_for('main.toggle_task', task_id=tsk.id) }}" style="display:inline">
                 <button class="btn" type="submit">{{ t('reopen') if tsk.status=='done' else t('complete') }}</button>
               </form>
@@ -65,6 +76,15 @@
               </form>
             {% else %}
               {% if tsk.assignee_id==current_user.id and tsk.status!='done' %}
+                <form method="post" action="{{ url_for('main.progress_task', task_id=tsk.id) }}" style="display:inline">
+                  {% if tsk.status == 'todo' %}
+                    <input type="hidden" name="state" value="in_progress" />
+                    <button class="btn" type="submit">{{ t('start') }}</button>
+                  {% else %}
+                    <input type="hidden" name="state" value="todo" />
+                    <button class="btn" type="submit">{{ t('back_to_todo') }}</button>
+                  {% endif %}
+                </form>
                 {% if pending_map and pending_map.get(tsk.id) %}
                   <span class="muted">{{ t('pending_approval') }}</span>
                 {% else %}
@@ -106,6 +126,17 @@
         <div class="card-actions">
           {% if is_owner %}
             <a class="btn" href="{{ url_for('main.edit_task', task_id=item.id) }}">{{ t('edit') }}</a>
+            {% if item.status != 'done' %}
+              <form method="post" action="{{ url_for('main.progress_task', task_id=item.id) }}">
+                {% if item.status == 'todo' %}
+                  <input type="hidden" name="state" value="in_progress" />
+                  <button class="btn" type="submit">{{ t('start') }}</button>
+                {% else %}
+                  <input type="hidden" name="state" value="todo" />
+                  <button class="btn" type="submit">{{ t('back_to_todo') }}</button>
+                {% endif %}
+              </form>
+            {% endif %}
             <form method="post" action="{{ url_for('main.toggle_task', task_id=item.id) }}">
               <button class="btn" type="submit">{{ t('reopen') if item.status=='done' else t('complete') }}</button>
             </form>
@@ -114,6 +145,15 @@
             </form>
           {% else %}
             {% if item.assignee_id==current_user.id and item.status!='done' %}
+              <form method="post" action="{{ url_for('main.progress_task', task_id=item.id) }}">
+                {% if item.status == 'todo' %}
+                  <input type="hidden" name="state" value="in_progress" />
+                  <button class="btn" type="submit">{{ t('start') }}</button>
+                {% else %}
+                  <input type="hidden" name="state" value="todo" />
+                  <button class="btn" type="submit">{{ t('back_to_todo') }}</button>
+                {% endif %}
+              </form>
               {% if pending_map and pending_map.get(item.id) %}
                 <span class="muted">{{ t('pending_approval') }}</span>
               {% else %}
