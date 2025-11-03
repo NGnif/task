@@ -5,8 +5,6 @@
     <h1>{{ t('dashboard') if is_owner else t('my_tasks') }}</h1>
     <div class="btn-row">
       {% if is_owner %}
-        <a class="btn" href="{{ url_for('main.export_csv', open=1) }}" target="_blank" rel="noopener">{{ t('view_csv') }}</a>
-        <a class="btn" href="{{ url_for('main.export_csv') }}">{{ t('download_csv') }}</a>
         <a class="btn" href="{{ url_for('main.import_csv') }}">{{ t('import_csv') }}</a>
         <a class="btn primary" href="{{ url_for('main.create_task') }}">{{ t('new_task') }}</a>
       {% endif %}

@@ -4,23 +4,6 @@
   const lastMKey = 'tm_last_msgs';
   const lastAKey = 'tm_last_appr';
 
-  // Insert toggle button in navbar
-  const navRight = document.querySelector('.nav-right');
-  if (navRight){
-    const snd = document.createElement('a');
-    snd.className = 'btn';
-    snd.href = 'javascript:void(0)';
-    const label = ()=> (localStorage.getItem(SOUND_KEY)==='off' ? '🔕' : '🔔');
-    snd.textContent = label();
-    snd.title = 'Toggle notification sound';
-    snd.addEventListener('click', ()=>{
-      const v = (localStorage.getItem(SOUND_KEY)==='off')?'on':'off';
-      localStorage.setItem(SOUND_KEY, v);
-      snd.textContent = label();
-    });
-    navRight.prepend(snd);
-  }
-
   let audioCtx;
   function ensureAudio(){
     if (!audioCtx){ try { audioCtx = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){} }
@@ -51,4 +34,3 @@
   localStorage.setItem(lastMKey, String(m));
   localStorage.setItem(lastAKey, String(a));
 })();
-
