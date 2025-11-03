@@ -64,8 +64,14 @@ def tasks():
         pendings = TaskCompletionRequest.query.filter_by(
             status="pending", requested_by_id=current_user.id
         ).all()
+    # Only show pending badge if the task is not already done
     for r in pendings:
-        pending_map[r.task_id] = True
+        try:
+            t = Task.query.get(r.task_id)
+            if t and t.status != "done":
+                pending_map[r.task_id] = True
+        except Exception:
+            continue
 
     return render_template(
         "tasks.html",
