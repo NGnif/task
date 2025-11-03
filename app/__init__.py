@@ -8,8 +8,15 @@ from .pwa import pwa_bp
 
 
 def create_app():
-    instance_path = os.environ.get("INSTANCE_PATH") or tempfile.gettempdir()
-    app = Flask(__name__, instance_path=instance_path)
+    base_tmp = os.environ.get("INSTANCE_PATH") or tempfile.gettempdir()
+    instance_dir = os.path.join(base_tmp, "flask-instance")
+    try:
+        os.makedirs(instance_dir, exist_ok=True)
+    except Exception:
+        # Best effort; continue if /tmp is available
+        instance_dir = base_tmp
+
+    app = Flask(__name__, instance_path=instance_dir)
     app.config.from_object("config.Config")
 
     # Init extensions
