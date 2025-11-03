@@ -206,8 +206,31 @@ def toggle_task(task_id: int):
     if not _can_edit(task):
         flash("Only the owner can modify tasks")
         return redirect(url_for("main.tasks"))
+    new_status = "done" if task.status != "done" else "todo"
+    task.status = new_status
 
-    task.status = "done" if task.status != "done" else "todo"
+    # If reopening to TODO, reject any pending completion requests and notify requester
+    if new_status == "todo":
+        pendings = TaskCompletionRequest.query.filter_by(
+            task_id=task.id, status="pending"
+        ).all()
+        for req in pendings:
+            req.status = "rejected"
+            req.decision_by_id = current_user.id
+            req.decision_at = datetime.utcnow()
+            req.decision_note = "Reopened by owner"
+            try:
+                if req.requested_by_id and req.requested_by_id != current_user.id:
+                    db.session.add(
+                        Message(
+                            sender_id=current_user.id,
+                            receiver_id=req.requested_by_id,
+                            body=f"Task #{task.id} '{task.title}' was reopened by owner.",
+                        )
+                    )
+            except Exception:
+                pass
+
     db.session.commit()
     return redirect(url_for("main.tasks"))
 
