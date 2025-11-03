@@ -451,6 +451,47 @@ def health():
     )
 
 
+@main_bp.route("/notifications/poll")
+@login_required
+def notifications_poll():
+    # Unread messages for current user
+    try:
+        msg_count = (
+            Message.query.filter_by(receiver_id=current_user.id, read_at=None).count()
+        )
+    except Exception:
+        msg_count = 0
+
+    # Approvals count
+    try:
+        if current_user.is_owner():
+            appr_count = TaskCompletionRequest.query.filter_by(status="pending").count()
+        else:
+            appr_count = TaskCompletionRequest.query.filter_by(
+                status="pending", requested_by_id=current_user.id
+            ).count()
+    except Exception:
+        appr_count = 0
+
+    # Pending tasks for attention (exclude ones already done)
+    pending_ids = []
+    try:
+        if current_user.is_owner():
+            pendings = TaskCompletionRequest.query.filter_by(status="pending").all()
+        else:
+            pendings = TaskCompletionRequest.query.filter_by(
+                status="pending", requested_by_id=current_user.id
+            ).all()
+        for r in pendings:
+            t = Task.query.get(r.task_id)
+            if t and t.status != "done":
+                pending_ids.append(t.id)
+    except Exception:
+        pass
+
+    return jsonify(messages=msg_count, approvals=appr_count, pending_task_ids=pending_ids)
+
+
 # Messaging (Owner <-> Worker)
 
 def _get_owner() -> User | None:

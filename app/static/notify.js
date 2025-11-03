@@ -1,4 +1,4 @@
-// Notification sound and counters (no UI injection)
+// Live notifications: poll server and update bell and approvals bubble
 (function(){
   const lastMKey = 'tm_last_msgs';
   const lastAKey = 'tm_last_appr';
@@ -18,12 +18,47 @@
     osc.stop(t);
   }
 
-  const m = Number(window.TM_NOTIF_MESSAGES||0);
-  const a = Number(window.TM_NOTIF_APPROVALS||0);
-  const lm = Number(localStorage.getItem(lastMKey)||'0');
-  const la = Number(localStorage.getItem(lastAKey)||'0');
-  if (m>lm || a>la) { setTimeout(()=>beep(), 300); }
-  localStorage.setItem(lastMKey, String(m));
-  localStorage.setItem(lastAKey, String(a));
+  function updateHeader(messages, approvals){
+    const bell = document.querySelector('.navbar .btn.bell');
+    if (bell){
+      if (messages > 0) bell.classList.add('bell-alert'); else bell.classList.remove('bell-alert');
+      let b = bell.querySelector('.bubble');
+      if (messages > 0){ if (!b){ b = document.createElement('span'); b.className='bubble'; bell.appendChild(b);} b.textContent = String(messages); }
+      else if (b){ b.remove(); }
+    }
+    const appr = document.getElementById('approvals-link');
+    if (appr){
+      let ab = appr.querySelector('.bubble');
+      if (approvals > 0){ if (!ab){ ab = document.createElement('span'); ab.className='bubble'; appr.appendChild(ab);} ab.textContent = String(approvals); }
+      else if (ab){ ab.remove(); }
+    }
+  }
+
+  function updateCards(pendingIds){
+    const set = new Set(pendingIds || []);
+    document.querySelectorAll('.card .btn.bell[data-task-id]').forEach((el)=>{
+      const id = Number(el.getAttribute('data-task-id')||'0');
+      if (set.has(id)) el.classList.add('bell-alert'); else el.classList.remove('bell-alert');
+    });
+  }
+
+  function poll(){
+    fetch('/notifications/poll', {credentials:'same-origin'})
+      .then(r=> r.ok ? r.json() : Promise.reject())
+      .then(({messages, approvals, pending_task_ids})=>{
+        const lm = Number(localStorage.getItem(lastMKey)||'0');
+        const la = Number(localStorage.getItem(lastAKey)||'0');
+        if (messages>lm || approvals>la) setTimeout(()=>beep(), 200);
+        localStorage.setItem(lastMKey, String(messages||0));
+        localStorage.setItem(lastAKey, String(approvals||0));
+        updateHeader(messages||0, approvals||0);
+        updateCards(pending_task_ids||[]);
+      })
+      .catch(()=>{});
+  }
+
+  // Initial refresh then poll every 7s
+  setTimeout(poll, 500);
+  setInterval(poll, 7000);
 })();
 

@@ -123,7 +123,7 @@
               {% endif %}
             {% endif %}
           {% endif %}
-          <a class="btn bell {% if pending_map and pending_map.get(item.id) %}bell-alert{% endif %}" href="{{ url_for('main.messages_root') }}" aria-label="Messages">🔔</a>
+          <a class="btn bell {% if pending_map and pending_map.get(item.id) %}bell-alert{% endif %}" data-task-id="{{ item.id }}" href="{{ url_for('main.messages_root') }}" aria-label="Messages">🔔</a>
         </div>
       </article>
     {% else %}
