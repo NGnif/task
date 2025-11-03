@@ -123,6 +123,7 @@
               {% endif %}
             {% endif %}
           {% endif %}
+          <a class="btn bell {% if notif_messages %}bell-alert{% endif %}" href="{{ url_for('main.messages_root') }}" aria-label="Messages">🔔{% if notif_messages %}<span class="bubble">{{ notif_messages }}</span>{% endif %}</a>
         </div>
       </article>
     {% else %}
