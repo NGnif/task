@@ -1,3 +1,5 @@
+import os
+import tempfile
 from flask import Flask
 from flask_login import LoginManager
 from .models import db, User
@@ -6,7 +8,8 @@ from .pwa import pwa_bp
 
 
 def create_app():
-    app = Flask(__name__)
+    instance_path = os.environ.get("INSTANCE_PATH") or tempfile.gettempdir()
+    app = Flask(__name__, instance_path=instance_path)
     app.config.from_object("config.Config")
 
     # Init extensions
