@@ -37,7 +37,7 @@ def manifest():
 @pwa_bp.route("/service-worker.js")
 def service_worker():
     # Basic offline caching: precache core assets, network-first for navigations
-    css = url_for("static", filename="styles.css") + "?v=7"
+    css = url_for("static", filename="styles.css") + "?v=8"
     assets = [
         "/",
         "/tasks",
@@ -49,7 +49,7 @@ def service_worker():
     ]
 
     js = f"""
-    const CACHE_NAME = 'tm-cache-v7';
+    const CACHE_NAME = 'tm-cache-v8';
     const ASSETS = {assets};
 
     self.addEventListener('install', (event) => {{
