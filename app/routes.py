@@ -523,6 +523,17 @@ def request_complete(task_id: int):
         task_id=task.id, requested_by_id=current_user.id, note=note
     )
     db.session.add(req)
+
+    # Send default message to owner notifying the request
+    owner = User.query.filter_by(role="owner").first()
+    if owner:
+        msg_body = (
+            f"Request to mark task #{task.id} '{task.title}' as done."
+            + (f" Note: {note}" if note else "")
+        )
+        db.session.add(
+            Message(sender_id=current_user.id, receiver_id=owner.id, body=msg_body)
+        )
     db.session.commit()
     flash("Completion request sent to owner")
     return redirect(url_for("main.tasks"))

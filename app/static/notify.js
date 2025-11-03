@@ -1,6 +1,5 @@
-// Notification sound and counters
+// Notification sound and counters (no UI injection)
 (function(){
-  const SOUND_KEY = 'tm_sound';
   const lastMKey = 'tm_last_msgs';
   const lastAKey = 'tm_last_appr';
 
@@ -11,18 +10,11 @@
     return audioCtx;
   }
   function beep(pattern=[[880,120],[0,60],[660,160]]){
-    if (localStorage.getItem(SOUND_KEY)==='off') return;
     const ctx = ensureAudio(); if (!ctx) return;
     const now = ctx.currentTime; let t = now;
     const osc = ctx.createOscillator(); const gain = ctx.createGain();
-    osc.type='sine';
-    osc.connect(gain).connect(ctx.destination);
-    osc.start(now);
-    for (const [f,d] of pattern){
-      osc.frequency.setValueAtTime(f||440,t);
-      gain.gain.setValueAtTime(f?0.15:0.0,t);
-      t += (d||120)/1000;
-    }
+    osc.type='sine'; osc.connect(gain).connect(ctx.destination); osc.start(now);
+    for (const [f,d] of pattern){ osc.frequency.setValueAtTime(f||440,t); gain.gain.setValueAtTime(f?0.15:0.0,t); t += (d||120)/1000; }
     osc.stop(t);
   }
 
@@ -34,3 +26,4 @@
   localStorage.setItem(lastMKey, String(m));
   localStorage.setItem(lastAKey, String(a));
 })();
+
