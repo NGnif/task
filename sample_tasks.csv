@@ -1,0 +1,10 @@
+id,title,description,status,priority,due_date,assignee,created_at,updated_at
+1,Inventory check room A,Count items in shelf A,todo,high,2025-11-05,alice,2025-11-02T08:30:00,2025-11-02T08:30:00
+2,Repair label printer,Replace roller and test,in_progress,medium,2025-11-06,bob,2025-11-02T09:10:00,2025-11-03T10:15:00
+3,Clean counter,Quick wipe and sanitize,done,low,,alice,2025-11-01T14:00:00,2025-11-01T15:20:00
+4,Purchase packing tape,Order 6 rolls,todo,medium,2025-11-10,owner,2025-11-02T12:45:00,2025-11-02T12:45:00
+5,Website banner update,Swap weekly promo image,in_progress,high,2025-11-04,bob,2025-11-02T13:30:00,2025-11-03T09:05:00
+6,Backroom reorg,Move boxes to aisle C,done,high,2025-10-31,owner,2025-10-30T16:40:00,2025-10-31T11:25:00
+7,Count cash drawer,End of day count,todo,low,,alice,2025-11-03T08:00:00,2025-11-03T08:00:00
+8,Call supplier,Confirm delivery schedule,in_progress,medium,2025-11-08,bob,2025-11-02T10:00:00,2025-11-03T08:45:00
+

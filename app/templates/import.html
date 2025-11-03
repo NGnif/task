@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}{{ t('import_title') }} · {{ t('app_name') }}{% endblock %}
+{% block content %}
+  <h1>{{ t('import_title') }}</h1>
+  <p class="muted">Upload a CSV file with headers. Accepted columns: <code>title</code>, <code>description</code>, <code>status</code> (todo|in_progress|done), <code>priority</code> (low|medium|high), <code>due_date</code> (YYYY-MM-DD), <code>assignee</code> (username). Extra columns are ignored.</p>
+  <ul class="muted">
+    <li>Owner: can assign to any existing username (unknown users are skipped).</li>
+    <li>Worker: all imported tasks are assigned to you, ignoring the assignee column.</li>
+  </ul>
+
+  <form class="form" method="post" enctype="multipart/form-data">
+    <label>{{ t('choose_file') }}
+      <input type="file" name="file" accept=".csv,text/csv,application/vnd.ms-excel" required />
+    </label>
+    <div class="actions">
+      <a class="btn" href="{{ url_for('main.tasks') }}">{{ t('cancel') }}</a>
+      <button class="btn primary" type="submit">{{ t('import_btn') }}</button>
+    </div>
+  </form>
+
+  <p class="muted">Need an example? Download <a href="{{ url_for('static', filename='sample_tasks.csv') }}" target="_blank" rel="noopener">sample_tasks.csv</a>.</p>
+
+  {% if results is not none %}
+    <h2>Import Results</h2>
+    <p>Created: <strong>{{ results.created }}</strong> &nbsp; Skipped: <strong>{{ results.skipped }}</strong></p>
+    {% if results.errors %}
+      <div class="error">Some rows were skipped:</div>
+      <ul>
+        {% for e in results.errors %}
+          <li>{{ e }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    <p><a class="btn" href="{{ url_for('main.tasks') }}">{{ t('tasks') }}</a></p>
+  {% endif %}
+{% endblock %}

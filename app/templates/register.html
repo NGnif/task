@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}{{ t('register') }} · {{ t('app_name') }}{% endblock %}
+{% block content %}
+  <h1>{{ t('register') }}</h1>
+  {% if error %}
+    <div class="error">{{ error }}</div>
+  {% endif %}
+  <form method="post" class="form">
+    <label>{{ t('username') }}
+      <input type="text" name="username" required />
+    </label>
+    <label>{{ t('password') }}
+      <input type="password" name="password" required />
+    </label>
+    <label>{{ t('confirm_password') }}
+      <input type="password" name="confirm" required />
+    </label>
+    <button type="submit" class="btn primary">{{ t('create_user') }}</button>
+  </form>
+  <p class="help">First registered user becomes the Owner. After that, only the Owner can create new users.</p>
+{% endblock %}

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="{{ locale }}" dir="{{ 'rtl' if dir_rtl else 'ltr' }}">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#b45309" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>{% block title %}{{ t('app_name') }}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=7" />
+    <link rel="manifest" href="{{ url_for('pwa.manifest') }}" />
+    <link rel="apple-touch-icon" href="/icons/192.png" />
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="container">
+        <div class="brand"><a href="{{ url_for('main.tasks') }}">{{ t('app_name') }}</a></div>
+        <button class="nav-toggle" aria-label="Menu">☰</button>
+        <div class="nav-right">
+          {% if current_user.is_authenticated %}
+            <a class="btn" href="{{ url_for('main.tasks') }}">{{ t('dashboard') if current_user.role=='owner' else t('my_tasks') }}</a>
+            <span class="user">{{ current_user.username }} ({{ t('owner') if current_user.role=='owner' else t('worker') }})</span>
+            {% if current_user.role=='owner' %}
+              <a class="btn" href="{{ url_for('auth.register') }}">{{ t('create_user') }}</a>
+            {% endif %}
+            <a class="btn" href="{{ url_for('i18n.set_lang', locale='ar' if locale=='en' else 'en') }}">{{ 'العربية' if locale=='en' else 'English' }}</a>
+            <a class="btn" href="{{ url_for('auth.logout') }}">{{ t('logout') }}</a>
+          {% else %}
+            <a class="btn" href="{{ url_for('i18n.set_lang', locale='ar' if locale=='en' else 'en') }}">{{ 'العربية' if locale=='en' else 'English' }}</a>
+            <a class="btn" href="{{ url_for('auth.login') }}">{{ t('login') }}</a>
+          {% endif %}
+        </div>
+      </div>
+    </nav>
+
+    <main class="container">
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <ul class="flash">
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </main>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('{{ url_for('pwa.service_worker') }}?v=2').catch(() => {});
+        });
+      }
+      // Mobile nav toggle
+      const navToggle = document.querySelector('.nav-toggle');
+      const navBar = document.querySelector('.navbar');
+      if (navToggle && navBar) {
+        navToggle.addEventListener('click', () => navBar.classList.toggle('open'));
+      }
+    </script>
+  </body>
+  </html>
