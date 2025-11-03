@@ -2,7 +2,7 @@ import os
 import tempfile
 from flask import Flask
 from flask_login import LoginManager
-from .models import db, User
+from .models import db, User, Message, TaskCompletionRequest
 from .i18n import i18n_bp, init_i18n
 from .pwa import pwa_bp
 
@@ -48,5 +48,28 @@ def create_app():
     # Create tables if not exist
     with app.app_context():
         db.create_all()
+
+    @app.context_processor
+    def inject_notifications():  # type: ignore
+        from flask_login import current_user
+        msg_count = 0
+        approvals_count = 0
+        try:
+            if current_user.is_authenticated:
+                msg_count = (
+                    Message.query.filter_by(receiver_id=current_user.id, read_at=None).count()
+                )
+                if getattr(current_user, "role", None) == "owner":
+                    approvals_count = TaskCompletionRequest.query.filter_by(status="pending").count()
+                else:
+                    approvals_count = TaskCompletionRequest.query.filter_by(
+                        status="pending", requested_by_id=current_user.id
+                    ).count()
+        except Exception:
+            pass
+        return {
+            "notif_messages": msg_count,
+            "notif_approvals": approvals_count,
+        }
 
     return app
