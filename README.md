@@ -23,10 +23,10 @@ Replace YOUR_GITHUB_USERNAME and YOUR_REPO_NAME with your repo path, or follow D
 3. Run: `python run.py` then open http://localhost:5000
 4. Register the first user (becomes Owner), then log in and add workers.
 
-Environment variables:
+Environment variables (required):
 
-- `SECRET_KEY`: any random string (required in production)
-- `DATABASE_URL`: e.g. `sqlite:///c:/path/app.db` or `postgresql://user:pass@host:5432/db`
+- `DATABASE_URL` (required): pooled Postgres URL, e.g. `postgresql://user:pass@host:5432/db?sslmode=require`
+- `SECRET_KEY` (required): any long random string
 
 ## Docker
 
@@ -44,7 +44,7 @@ docker run -e SECRET_KEY=change-me -e DATABASE_URL=sqlite:////data/app.db -p 500
 
 ## Deploy
 
-- Set `SECRET_KEY` and `DATABASE_URL` env vars (prefer Postgres)
+- Set `SECRET_KEY` and `DATABASE_URL` env vars (Postgres required; SQLite not supported)
 - Run the container with Gunicorn (Dockerfile included) or deploy to Render/Railway/Fly.io
 - Vercel (free) instructions: see `DEPLOY.md`
 

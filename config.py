@@ -1,5 +1,4 @@
 import os
-import tempfile
 from dotenv import load_dotenv
 
 # Load .env from project root for local development
@@ -9,16 +8,22 @@ load_dotenv(os.path.join(_ROOT, ".env"), override=False)
 
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-change-me")
-    # Default to a writable temp sqlite path in serverless environments
-    _default_sqlite = os.path.join(tempfile.gettempdir(), "app.db")
-    DATABASE_URL = os.environ.get("DATABASE_URL", _default_sqlite)
+    DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 
+    # Normalize deprecated scheme used by some providers
     if DATABASE_URL.startswith("postgres://"):
         DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
-    if "://" in DATABASE_URL:
-        SQLALCHEMY_DATABASE_URI = DATABASE_URL
-    else:
-        SQLALCHEMY_DATABASE_URI = f"sqlite:///{DATABASE_URL}"
+    # Require a Postgres URL; do not fall back to SQLite
+    if not DATABASE_URL:
+        raise RuntimeError(
+            "DATABASE_URL is required and must be a pooled Postgres URL (e.g., from Neon/Supabase)."
+        )
+    if not (
+        DATABASE_URL.startswith("postgresql://")
+        or DATABASE_URL.startswith("postgresql+psycopg2://")
+    ):
+        raise RuntimeError("DATABASE_URL must start with 'postgresql://'")
 
+    SQLALCHEMY_DATABASE_URI = DATABASE_URL
     SQLALCHEMY_TRACK_MODIFICATIONS = False
