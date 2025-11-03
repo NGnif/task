@@ -56,3 +56,13 @@ class Task(db.Model):
         db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
     )
 
+class Message(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    receiver_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    read_at = db.Column(db.DateTime, nullable=True)
+
+    sender = db.relationship("User", foreign_keys=[sender_id])
+    receiver = db.relationship("User", foreign_keys=[receiver_id])

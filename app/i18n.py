@@ -38,6 +38,10 @@ _t = {
         "complete": "Complete",
         "reopen": "Reopen",
         "delete": "Delete",
+        "messages": "Messages",
+        "send": "Send",
+        "type_message": "Type your message",
+        "no_messages": "No messages yet.",
         "save": "Save",
         "cancel": "Cancel",
         "no_tasks": "No tasks found.",
@@ -87,6 +91,10 @@ _t = {
         "complete": "إنهاء",
         "reopen": "إعادة فتح",
         "delete": "حذف",
+        "messages": "الرسائل",
+        "send": "إرسال",
+        "type_message": "اكتب رسالتك",
+        "no_messages": "لا توجد رسائل.",
         "save": "حفظ",
         "cancel": "إلغاء",
         "no_tasks": "لا توجد مهام.",
@@ -152,4 +160,3 @@ def init_i18n(app):
             "locale": get_locale(),
             "dir_rtl": is_rtl(),
         }
-

@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}{{ t('messages') }} - {{ t('app_name') }}{% endblock %}
+{% block content %}
+  <div class="header-row">
+    <h1>{{ t('messages') }}</h1>
+    {% if workers %}
+      <form method="get">
+        <select onchange="if(this.value){window.location=this.value;}">
+          {% for w in workers %}
+            <option value="{{ url_for('main.messages_with', user_id=w.id) }}" {% if w.id == other.id %}selected{% endif %}>{{ w.username }}</option>
+          {% endfor %}
+        </select>
+      </form>
+    {% endif %}
+  </div>
+
+  <div class="chat" dir="{{ 'rtl' if dir_rtl else 'ltr' }}">
+    {% for m in thread %}
+      <div class="msg {{ 'me' if m.sender_id==current_user.id else 'them' }}">
+        <div class="bubble">{{ m.body }}</div>
+        <div class="time">{{ m.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+      </div>
+    {% else %}
+      <div class="muted">{{ t('no_messages') }}</div>
+    {% endfor %}
+  </div>
+
+  <form method="post" class="form send-box">
+    <input type="hidden" name="receiver_id" value="{{ other.id }}" />
+    <label>{{ t('type_message') }}
+      <textarea name="body" rows="2" required></textarea>
+    </label>
+    <div class="actions">
+      <button class="btn primary" type="submit">{{ t('send') }}</button>
+    </div>
+  </form>
+{% endblock %}
+

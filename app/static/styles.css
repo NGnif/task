@@ -66,3 +66,13 @@ input, textarea, select{ background:#ffffff; border:1px solid var(--border); bor
 /* Navbar button styling on colored header */
 .navbar .btn{ background:rgba(255,255,255,.10); color:#fff; border-color:rgba(255,255,255,.25); }
 .navbar .btn.primary{ background:var(--primary); color:#111827; border-color:transparent; }
+
+/* Chat */
+.chat{ display:grid; gap:8px; margin:12px 0 8px; max-height:60vh; overflow:auto; padding:8px; background:var(--panel); border:1px solid var(--border); border-radius:12px; }
+.msg{ display:grid; gap:4px; }
+.msg .bubble{ display:inline-block; padding:8px 12px; border-radius:12px; max-width:80%; word-wrap:break-word; white-space:pre-wrap; }
+.msg.me{ justify-items:end; }
+.msg.me .bubble{ background:#f59e0b; color:#111827; border:1px solid #b45309; }
+.msg.them .bubble{ background:#f3f4f6; color:#111827; border:1px solid #e5e7eb; }
+.msg .time{ font-size:12px; color:var(--muted); }
+.send-box textarea{ resize:vertical; }

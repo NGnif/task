@@ -3,16 +3,18 @@ from datetime import datetime
 from flask import (
     Blueprint,
     Response,
+    jsonify,
     flash,
     redirect,
     render_template,
     request,
     url_for,
 )
+from flask import current_app
 from flask_login import current_user, login_required
-from sqlalchemy import or_
+from sqlalchemy import or_, text
 
-from .models import Task, User, db
+from .models import Task, User, Message, db
 import csv
 import io
 
@@ -381,3 +383,101 @@ def import_csv():
         results = {"created": created, "skipped": skipped, "errors": errors[:20]}
 
     return render_template("import.html", results=results)
+
+
+@main_bp.route("/health")
+def health():
+    ok = True
+    db_ok = False
+    db_error = None
+    try:
+        db.session.execute(text("SELECT 1"))
+        db_ok = True
+    except Exception as e:
+        ok = False
+        db_ok = False
+        db_error = type(e).__name__
+
+    uri = current_app.config.get("SQLALCHEMY_DATABASE_URI", "")
+    scheme = uri.split(":", 1)[0] if uri else ""
+
+    return jsonify(
+        status="ok" if ok and db_ok else "error",
+        db=db_ok,
+        db_scheme=scheme,
+        instance_path=current_app.instance_path,
+        db_error=db_error,
+    )
+
+
+# Messaging (Owner <-> Worker)
+
+def _get_owner() -> User | None:
+    return User.query.filter_by(role="owner").first()
+
+
+@main_bp.route("/messages")
+@login_required
+def messages_root():
+    if current_user.is_owner():
+        user = User.query.filter(User.role == "worker").order_by(User.username.asc()).first()
+        if not user:
+            flash("No workers yet. Create one to start messaging.")
+            return redirect(url_for("main.tasks"))
+        return redirect(url_for("main.messages_with", user_id=user.id))
+    else:
+        owner = _get_owner()
+        if not owner:
+            flash("Owner account not found")
+            return redirect(url_for("main.tasks"))
+        return redirect(url_for("main.messages_with", user_id=owner.id))
+
+
+@main_bp.route("/messages/<int:user_id>", methods=["GET", "POST"])
+@login_required
+def messages_with(user_id: int):
+    other = User.query.get_or_404(user_id)
+
+    # Permissions: workers may only talk with owner; owner may message any worker
+    if current_user.is_owner():
+        if other.role != "worker":
+            flash("Owners can only open conversations with workers")
+            return redirect(url_for("main.messages_root"))
+    else:
+        owner = _get_owner()
+        if other.id != (owner.id if owner else -1):
+            flash("Workers can only message the owner")
+            return redirect(url_for("main.messages_root"))
+
+    if request.method == "POST":
+        body = (request.form.get("body") or "").strip()
+        if not body:
+            flash("Message cannot be empty")
+        else:
+            msg = Message(sender_id=current_user.id, receiver_id=other.id, body=body)
+            db.session.add(msg)
+            db.session.commit()
+            return redirect(url_for("main.messages_with", user_id=other.id))
+
+    # Load thread
+    thread = (
+        Message.query.filter(
+            ((Message.sender_id == current_user.id) & (Message.receiver_id == other.id))
+            | ((Message.sender_id == other.id) & (Message.receiver_id == current_user.id))
+        )
+        .order_by(Message.created_at.asc())
+        .all()
+    )
+
+    # Mark incoming as read
+    for m in thread:
+        if m.receiver_id == current_user.id and m.read_at is None:
+            m.read_at = datetime.utcnow()
+    db.session.commit()
+
+    # Owner list of workers for quick switching
+    workers = []
+    if current_user.is_owner():
+        workers = User.query.filter(User.role == "worker").order_by(User.username.asc()).all()
+
+    return render_template("messages.html", other=other, thread=thread, workers=workers)

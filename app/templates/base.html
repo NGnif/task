@@ -19,6 +19,7 @@
         <div class="nav-right">
           {% if current_user.is_authenticated %}
             <a class="btn" href="{{ url_for('main.tasks') }}">{{ t('dashboard') if current_user.role=='owner' else t('my_tasks') }}</a>
+            <a class="btn" href="{{ url_for('main.messages_root') }}">{{ t('messages') }}</a>
             <span class="user">{{ current_user.username }} ({{ t('owner') if current_user.role=='owner' else t('worker') }})</span>
             {% if current_user.role=='owner' %}
               <a class="btn" href="{{ url_for('auth.register') }}">{{ t('create_user') }}</a>
