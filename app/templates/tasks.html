@@ -49,7 +49,7 @@
         <tr class="row-status-{{ tsk.status }}">
           <td>#{{ tsk.id }}</td>
           <td>
-            <div class="title">{{ tsk.title }}</div>
+            <div class="title">{{ tsk.title }}{% if pending_map and pending_map.get(tsk.id) %} <span class="badge warn">{{ t('pending_approval') }}</span>{% endif %}</div>
             {% if tsk.description %}<div class="muted">{{ tsk.description }}</div>{% endif %}
           </td>
           <td>{{ tsk.assignee.username if tsk.assignee else '-' }}</td>
@@ -66,7 +66,17 @@
                 <button class="btn danger" type="submit">{{ t('delete') }}</button>
               </form>
             {% else %}
-              <span class="muted">—</span>
+              {% if tsk.assignee_id==current_user.id and tsk.status!='done' %}
+                {% if pending_map and pending_map.get(tsk.id) %}
+                  <span class="muted">{{ t('pending_approval') }}</span>
+                {% else %}
+                  <form method="post" action="{{ url_for('main.request_complete', task_id=tsk.id) }}" style="display:inline">
+                    <button class="btn" type="submit">{{ t('request_done') }}</button>
+                  </form>
+                {% endif %}
+              {% else %}
+                <span class="muted">—</span>
+              {% endif %}
             {% endif %}
           </td>
         </tr>
@@ -85,6 +95,7 @@
           <div class="badges">
             <span class="badge status-{{ item.status }}">{{ status_label(item.status) }}</span>
             <span class="badge prio-{{ item.priority }}">{{ priority_label(item.priority) }}</span>
+            {% if pending_map and pending_map.get(item.id) %}<span class="badge warn">{{ t('pending_approval') }}</span>{% endif %}
           </div>
         </div>
         {% if item.description %}
@@ -103,6 +114,16 @@
             <form method="post" action="{{ url_for('main.delete_task', task_id=item.id) }}" onsubmit="return confirm('Delete this task?');">
               <button class="btn danger" type="submit">{{ t('delete') }}</button>
             </form>
+          {% else %}
+            {% if item.assignee_id==current_user.id and item.status!='done' %}
+              {% if pending_map and pending_map.get(item.id) %}
+                <span class="muted">{{ t('pending_approval') }}</span>
+              {% else %}
+                <form method="post" action="{{ url_for('main.request_complete', task_id=item.id) }}">
+                  <button class="btn" type="submit">{{ t('request_done') }}</button>
+                </form>
+              {% endif %}
+            {% endif %}
           {% endif %}
         </div>
       </article>

@@ -39,6 +39,7 @@ input, textarea, select{ background:#ffffff; border:1px solid var(--border); bor
 .card-actions{ display:flex; gap:8px; flex-wrap:wrap; }
 .badges{ display:flex; gap:6px; flex-wrap:wrap; }
 .badge{ font-size:12px; padding:2px 8px; border-radius:999px; border:1px solid #e5e7eb; background:#fff; color:#111827; }
+.badge.warn{ background:#fcd34d; color:#854d0e; border-color:#f59e0b; }
 .badge.status-done{ background:#dcfce7; color:#065f46; border-color:#86efac; }
 .badge.status-in_progress{ background:#fef9c3; color:#854d0e; border-color:#fde68a; }
 .badge.status-todo{ background:#e5e7eb; color:#111827; }

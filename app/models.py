@@ -66,3 +66,19 @@ class Message(db.Model):
 
     sender = db.relationship("User", foreign_keys=[sender_id])
     receiver = db.relationship("User", foreign_keys=[receiver_id])
+
+
+class TaskCompletionRequest(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    task_id = db.Column(db.Integer, db.ForeignKey("task.id"), nullable=False)
+    requested_by_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    note = db.Column(db.Text, nullable=True)
+    status = db.Column(db.String(20), nullable=False, default="pending")  # pending|approved|rejected
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    decision_by_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+    decision_note = db.Column(db.Text, nullable=True)
+    decision_at = db.Column(db.DateTime, nullable=True)
+
+    task = db.relationship("Task", foreign_keys=[task_id])
+    requested_by = db.relationship("User", foreign_keys=[requested_by_id])
+    decision_by = db.relationship("User", foreign_keys=[decision_by_id])

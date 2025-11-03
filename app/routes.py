@@ -14,7 +14,7 @@ from flask import current_app
 from flask_login import current_user, login_required
 from sqlalchemy import or_, text
 
-from .models import Task, User, Message, db
+from .models import Task, User, Message, TaskCompletionRequest, db
 import csv
 import io
 
@@ -56,11 +56,23 @@ def tasks():
     tasks_list = query.all()
     users = User.query.order_by(User.username.asc()).all()
 
+    # For UI: pending completion requests per task (dict)
+    pending_map = {}
+    if current_user.is_owner():
+        pendings = TaskCompletionRequest.query.filter_by(status="pending").all()
+    else:
+        pendings = TaskCompletionRequest.query.filter_by(
+            status="pending", requested_by_id=current_user.id
+        ).all()
+    for r in pendings:
+        pending_map[r.task_id] = True
+
     return render_template(
         "tasks.html",
         tasks=tasks_list,
         users=users,
         is_owner=current_user.is_owner(),
+        pending_map=pending_map,
     )
 
 
@@ -481,3 +493,93 @@ def messages_with(user_id: int):
         workers = User.query.filter(User.role == "worker").order_by(User.username.asc()).all()
 
     return render_template("messages.html", other=other, thread=thread, workers=workers)
+
+
+# Worker: request completion (requires owner approval)
+@main_bp.route("/tasks/<int:task_id>/request-complete", methods=["POST"])
+@login_required
+def request_complete(task_id: int):
+    task = Task.query.get_or_404(task_id)
+    if current_user.is_owner():
+        flash("Owners do not need approval; use Complete instead")
+        return redirect(url_for("main.tasks"))
+    if task.assignee_id != current_user.id:
+        flash("You can only request completion for your own tasks")
+        return redirect(url_for("main.tasks"))
+    if task.status == "done":
+        flash("Task already done")
+        return redirect(url_for("main.tasks"))
+
+    # Prevent duplicate pending requests
+    exists = TaskCompletionRequest.query.filter_by(
+        task_id=task.id, status="pending"
+    ).first()
+    if exists:
+        flash("Request already submitted and pending approval")
+        return redirect(url_for("main.tasks"))
+
+    note = (request.form.get("note") or "").strip()
+    req = TaskCompletionRequest(
+        task_id=task.id, requested_by_id=current_user.id, note=note
+    )
+    db.session.add(req)
+    db.session.commit()
+    flash("Completion request sent to owner")
+    return redirect(url_for("main.tasks"))
+
+
+# Owner: list approvals
+@main_bp.route("/approvals")
+@login_required
+def approvals():
+    if not current_user.is_owner():
+        flash("Only owner can view approvals")
+        return redirect(url_for("main.tasks"))
+    pending = (
+        TaskCompletionRequest.query.filter_by(status="pending")
+        .order_by(TaskCompletionRequest.created_at.asc())
+        .all()
+    )
+    return render_template("approvals.html", requests=pending)
+
+
+# Owner decision endpoints
+@main_bp.route("/approvals/<int:req_id>/approve", methods=["POST"])
+@login_required
+def approvals_approve(req_id: int):
+    if not current_user.is_owner():
+        flash("Only owner can approve")
+        return redirect(url_for("main.tasks"))
+    req = TaskCompletionRequest.query.get_or_404(req_id)
+    if req.status != "pending":
+        return redirect(url_for("main.approvals"))
+    req.status = "approved"
+    req.decision_by_id = current_user.id
+    req.decision_note = (request.form.get("decision_note") or "").strip()
+    req.decision_at = datetime.utcnow()
+
+    # Apply status change
+    task = Task.query.get(req.task_id)
+    if task:
+        task.status = "done"
+    db.session.commit()
+    flash("Request approved; task marked done")
+    return redirect(url_for("main.approvals"))
+
+
+@main_bp.route("/approvals/<int:req_id>/reject", methods=["POST"])
+@login_required
+def approvals_reject(req_id: int):
+    if not current_user.is_owner():
+        flash("Only owner can reject")
+        return redirect(url_for("main.tasks"))
+    req = TaskCompletionRequest.query.get_or_404(req_id)
+    if req.status != "pending":
+        return redirect(url_for("main.approvals"))
+    req.status = "rejected"
+    req.decision_by_id = current_user.id
+    req.decision_note = (request.form.get("decision_note") or "").strip()
+    req.decision_at = datetime.utcnow()
+    db.session.commit()
+    flash("Request rejected")
+    return redirect(url_for("main.approvals"))
