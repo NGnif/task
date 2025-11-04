@@ -22,7 +22,7 @@
         <h1>Signed out</h1>
         <p>You can now close this app.</p>
         <div class="row">
-          <button id="closeBtn" class="btn primary" type="button">Close app</button>
+          <button id="closeBtn" class="btn primary" type="button">Close</button>
           <a id="loginLink" class="btn" href="{{ url_for('auth.login') }}">Back to login</a>
         </div>
       </div>
@@ -39,14 +39,22 @@
         }
         function tryClose(){
           const isStandalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || (window.navigator && window.navigator.standalone === true);
+          // multiple attempts via different window contexts
           try { window.open('', '_self'); } catch(e){}
           try { window.close(); } catch(e){}
+          try { window.top && window.top.close && window.top.close(); } catch(e){}
+          try { window.parent && window.parent.close && window.parent.close(); } catch(e){}
           if (isStandalone) {
             try { window.close(); } catch(e){}
           }
+          // As a strong fallback, replace with a blank page and try again
           try {
+            document.body.innerHTML = '';
             window.location.replace('about:blank');
-            setTimeout(function(){ try { window.close(); } catch(e){} }, 100);
+            setTimeout(function(){
+              try { window.close(); } catch(e){}
+              try { window.top && window.top.close && window.top.close(); } catch(e){}
+            }, 150);
           } catch(e){}
         }
         document.getElementById('closeBtn').addEventListener('click', tryClose);
