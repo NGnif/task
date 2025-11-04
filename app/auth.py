@@ -66,4 +66,10 @@ def register():
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for("auth.login"))
+    return redirect(url_for("auth.goodbye"))
+
+
+@auth_bp.route("/goodbye")
+def goodbye():
+    # Minimal page that attempts to close the window/app with safe fallbacks
+    return render_template("goodbye.html")
