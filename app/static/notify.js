@@ -3,6 +3,14 @@
   const lastMKey = 'tm_last_msgs';
   const lastAKey = 'tm_last_appr';
 
+  // Initialize last known counts from server-rendered values on first load
+  try {
+    const initM = typeof window!== 'undefined' && typeof window.TM_NOTIF_MESSAGES !== 'undefined' ? Number(window.TM_NOTIF_MESSAGES||0) : 0;
+    const initA = typeof window!== 'undefined' && typeof window.TM_NOTIF_APPROVALS !== 'undefined' ? Number(window.TM_NOTIF_APPROVALS||0) : 0;
+    if (localStorage.getItem(lastMKey) === null) localStorage.setItem(lastMKey, String(initM));
+    if (localStorage.getItem(lastAKey) === null) localStorage.setItem(lastAKey, String(initA));
+  } catch (e) {}
+
   let audioCtx;
   function ensureAudio(){
     if (!audioCtx){ try { audioCtx = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){} }
@@ -48,7 +56,8 @@
       .then(({messages, approvals, pending_task_ids})=>{
         const lm = Number(localStorage.getItem(lastMKey)||'0');
         const la = Number(localStorage.getItem(lastAKey)||'0');
-        if (messages>lm || approvals>la) setTimeout(()=>beep(), 200);
+        const hasApprovalsLink = !!document.getElementById('approvals-link');
+        if (messages>lm || (hasApprovalsLink && approvals>la)) setTimeout(()=>beep(), 200);
         localStorage.setItem(lastMKey, String(messages||0));
         localStorage.setItem(lastAKey, String(approvals||0));
         updateHeader(messages||0, approvals||0);

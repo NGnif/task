@@ -73,12 +73,22 @@ def tasks():
         except Exception:
             continue
 
+    # Owner id for workers to open chat with owner from task cards
+    owner_id = None
+    if not current_user.is_owner():
+        try:
+            owner = _get_owner()
+            owner_id = owner.id if owner else None
+        except Exception:
+            owner_id = None
+
     return render_template(
         "tasks.html",
         tasks=tasks_list,
         users=users,
         is_owner=current_user.is_owner(),
         pending_map=pending_map,
+        owner_id=owner_id,
     )
 
 
@@ -563,6 +573,20 @@ def _get_owner() -> User | None:
 @login_required
 def messages_root():
     if current_user.is_owner():
+        # Prefer the most recent unread conversation, if any
+        try:
+            recent_unread = (
+                Message.query.filter_by(receiver_id=current_user.id, read_at=None)
+                .order_by(Message.created_at.desc())
+                .first()
+            )
+            if recent_unread:
+                u = User.query.get(recent_unread.sender_id)
+                if u and u.role == "worker":
+                    return redirect(url_for("main.messages_with", user_id=u.id))
+        except Exception:
+            pass
+
         user = User.query.filter(User.role == "worker").order_by(User.username.asc()).first()
         if not user:
             flash("No workers yet. Create one to start messaging.")

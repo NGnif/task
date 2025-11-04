@@ -163,7 +163,24 @@
               {% endif %}
             {% endif %}
           {% endif %}
-          <a class="btn bell {% if pending_map and pending_map.get(item.id) %}bell-alert{% endif %}" data-task-id="{{ item.id }}" href="{{ url_for('main.messages_root') }}" aria-label="Messages">🔔</a>
+          {% if is_owner %}
+            <a class="btn bell {% if pending_map and pending_map.get(item.id) %}bell-alert{% endif %}"
+               data-task-id="{{ item.id }}"
+               href="{{ url_for('main.messages_with', user_id=item.assignee_id) }}"
+               aria-label="Messages">🔔</a>
+          {% else %}
+            {% if owner_id %}
+              <a class="btn bell {% if pending_map and pending_map.get(item.id) %}bell-alert{% endif %}"
+                 data-task-id="{{ item.id }}"
+                 href="{{ url_for('main.messages_with', user_id=owner_id) }}"
+                 aria-label="Messages">🔔</a>
+            {% else %}
+              <a class="btn bell {% if pending_map and pending_map.get(item.id) %}bell-alert{% endif %}"
+                 data-task-id="{{ item.id }}"
+                 href="{{ url_for('main.messages_root') }}"
+                 aria-label="Messages">🔔</a>
+            {% endif %}
+          {% endif %}
         </div>
       </article>
     {% else %}
