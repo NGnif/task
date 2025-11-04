@@ -647,7 +647,15 @@ def messages_with(user_id: int):
     if current_user.is_owner():
         workers = User.query.filter(User.role == "worker").order_by(User.username.asc()).all()
 
-    return render_template("messages.html", other=other, thread=thread, workers=workers)
+    pending_reqs = []
+    if current_user.is_owner():
+        pending_reqs = (
+            TaskCompletionRequest.query.filter_by(status="pending", requested_by_id=other.id)
+            .order_by(TaskCompletionRequest.created_at.asc())
+            .all()
+        )
+
+    return render_template("messages.html", other=other, thread=thread, workers=workers, pending_reqs=pending_reqs)
 
 
 # Worker: request completion (requires owner approval)

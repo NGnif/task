@@ -67,5 +67,23 @@
       window.TM_NOTIF_APPROVALS = {{ notif_approvals or 0 }};
     </script>
     <script src="{{ url_for('static', filename='notify.js') }}?v=10"></script>
+    <script>
+      (function(){
+        const REFRESH_MS = 10000;
+        function isTyping(){
+          const ae = document.activeElement;
+          if (!ae) return false;
+          const tag = (ae.tagName||'').toUpperCase();
+          return ae.isContentEditable || tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT';
+        }
+        function shouldRefresh(){
+          if (document.hidden) return false;
+          if (isTyping()) return false;
+          const p = location.pathname || '';
+          return p.startsWith('/tasks') || p.startsWith('/messages') || p.startsWith('/approvals');
+        }
+        setInterval(()=>{ if (shouldRefresh()) { window.location.reload(); } }, REFRESH_MS);
+      })();
+    </script>
   </body>
   </html>
