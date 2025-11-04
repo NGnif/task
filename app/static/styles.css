@@ -1,9 +1,10 @@
 /* Facebook-like light theme */
 :root { --bg:#f0f2f5; --panel:#ffffff; --text:#1c1e21; --muted:#65676b; --primary:#1877F2; --danger:#dc2626; --border:#e4e6eb; --ok:#31a24c; --warn:#f59e0b; --navbar-bg:#1877F2; --navbar-fg:#ffffff; --navbar-border:#1463d8; }
 *{ box-sizing:border-box; }
-html,body{ margin:0; padding:0; background:var(--bg); color:var(--text); font:14px/1.4 system-ui,Segoe UI,Roboto,Arial; }
-.container{ max-width:1000px; margin:0 auto; padding:16px; }
-.navbar{ background:var(--navbar-bg); border-bottom:1px solid var(--navbar-border); position:sticky; top:0; z-index:50; }
+html,body{ margin:0; padding:0; background:var(--bg); color:var(--text); font:14px/1.4 system-ui,Segoe UI,Roboto,Arial; -webkit-text-size-adjust:100%; -webkit-tap-highlight-color:rgba(0,0,0,0); }
+body{ padding-bottom:env(safe-area-inset-bottom); }
+.container{ max-width:1000px; margin:0 auto; padding:16px; padding-left:calc(16px + env(safe-area-inset-left)); padding-right:calc(16px + env(safe-area-inset-right)); }
+.navbar{ background:var(--navbar-bg); border-bottom:1px solid var(--navbar-border); position:sticky; top:0; z-index:50; padding-top:env(safe-area-inset-top); }
 .navbar .container{ display:flex; align-items:center; justify-content:space-between; }
 .brand a{ color:var(--navbar-fg); text-decoration:none; font-weight:600; }
 .nav-right{ display:flex; gap:12px; align-items:center; }
@@ -62,6 +63,7 @@ input, textarea, select{ background:#ffffff; border:1px solid var(--border); bor
   .navbar .nav-right .btn{ background:#e4e6eb; color:#1c1e21; border-color:#dadde1; }
   .navbar .nav-right .btn.primary{ background:var(--primary); color:#ffffff; border-color:transparent; }
   .navbar .nav-right .user{ color:#111827; opacity:1; }
+  .btn{ min-height:44px; }
 }
 
 /* Navbar button styling on colored header */
@@ -82,3 +84,7 @@ input, textarea, select{ background:#ffffff; border:1px solid var(--border); bor
 .msg.them .bubble{ background:#f3f4f6; color:#111827; border:1px solid #e5e7eb; }
 .msg .time{ font-size:12px; color:var(--muted); }
 .send-box textarea{ resize:vertical; }
+
+@supports (height: 1dvh){
+  .chat{ max-height:60dvh; }
+}
