@@ -242,6 +242,7 @@ def toggle_task(task_id: int):
         pendings = TaskCompletionRequest.query.filter_by(
             task_id=task.id, status="pending"
         ).all()
+        had_pending = bool(pendings)
         for req in pendings:
             req.status = "approved"
             req.decision_by_id = current_user.id
@@ -255,6 +256,18 @@ def toggle_task(task_id: int):
                             body=f"Your request to mark task #{task.id} '{task.title}' was approved.",
                         )
                     )
+            except Exception:
+                pass
+        # If no pending request existed, still notify the assignee that the owner marked it done
+        if not had_pending and task.assignee_id and task.assignee_id != current_user.id:
+            try:
+                db.session.add(
+                    Message(
+                        sender_id=current_user.id,
+                        receiver_id=task.assignee_id,
+                        body=f"Task #{task.id} '{task.title}' was marked done by owner.",
+                    )
+                )
             except Exception:
                 pass
 
@@ -291,6 +304,11 @@ def delete_task(task_id: int):
     if not current_user.is_owner():
         flash("Only the owner can delete tasks")
         return redirect(url_for("main.tasks"))
+    # Clean up related completion requests to avoid FK issues
+    try:
+        TaskCompletionRequest.query.filter_by(task_id=task.id).delete()
+    except Exception:
+        pass
     db.session.delete(task)
     db.session.commit()
     flash("Task deleted")
@@ -621,6 +639,9 @@ def request_complete(task_id: int):
         return redirect(url_for("main.tasks"))
     if task.status == "done":
         flash("Task already done")
+        return redirect(url_for("main.tasks"))
+    if task.status not in ("todo", "in_progress"):
+        flash("Invalid task state for completion request")
         return redirect(url_for("main.tasks"))
 
     # Prevent duplicate pending requests
