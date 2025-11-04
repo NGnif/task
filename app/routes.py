@@ -237,6 +237,27 @@ def toggle_task(task_id: int):
             except Exception:
                 pass
 
+    else:
+        # Mark any pending requests as approved when owner marks done directly
+        pendings = TaskCompletionRequest.query.filter_by(
+            task_id=task.id, status="pending"
+        ).all()
+        for req in pendings:
+            req.status = "approved"
+            req.decision_by_id = current_user.id
+            req.decision_at = datetime.utcnow()
+            try:
+                if req.requested_by_id and req.requested_by_id != current_user.id:
+                    db.session.add(
+                        Message(
+                            sender_id=current_user.id,
+                            receiver_id=req.requested_by_id,
+                            body=f"Your request to mark task #{task.id} '{task.title}' was approved.",
+                        )
+                    )
+            except Exception:
+                pass
+
     db.session.commit()
     return redirect(url_for("main.tasks"))
 
@@ -665,6 +686,19 @@ def approvals_approve(req_id: int):
     task = Task.query.get(req.task_id)
     if task:
         task.status = "done"
+        # Notify requester
+        try:
+            if req.requested_by_id and req.requested_by_id != current_user.id:
+                note_txt = f" Note: {req.decision_note}" if req.decision_note else ""
+                db.session.add(
+                    Message(
+                        sender_id=current_user.id,
+                        receiver_id=req.requested_by_id,
+                        body=f"Your request to mark task #{task.id} '{task.title}' as done was approved.{note_txt}",
+                    )
+                )
+        except Exception:
+            pass
     db.session.commit()
     flash("Request approved; task marked done")
     return redirect(url_for("main.approvals"))
@@ -683,6 +717,20 @@ def approvals_reject(req_id: int):
     req.decision_by_id = current_user.id
     req.decision_note = (request.form.get("decision_note") or "").strip()
     req.decision_at = datetime.utcnow()
+    # Notify requester
+    try:
+        task = Task.query.get(req.task_id)
+        if req.requested_by_id and req.requested_by_id != current_user.id:
+            note_txt = f" Note: {req.decision_note}" if req.decision_note else ""
+            db.session.add(
+                Message(
+                    sender_id=current_user.id,
+                    receiver_id=req.requested_by_id,
+                    body=f"Your request to mark task #{task.id if task else req.task_id} was rejected.{note_txt}",
+                )
+            )
+    except Exception:
+        pass
     db.session.commit()
     flash("Request rejected")
     return redirect(url_for("main.approvals"))
