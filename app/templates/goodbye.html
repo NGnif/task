@@ -37,6 +37,7 @@
             navigator.serviceWorker.getRegistrations().then(list => { list.forEach(r => r.unregister()); }).catch(()=>{});
           } catch(e){}
         }
+        const loginURL = document.getElementById('loginLink').href;
         function tryClose(){
           const isStandalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || (window.navigator && window.navigator.standalone === true);
           // multiple attempts via different window contexts
@@ -47,15 +48,10 @@
           if (isStandalone) {
             try { window.close(); } catch(e){}
           }
-          // As a strong fallback, replace with a blank page and try again
-          try {
-            document.body.innerHTML = '';
-            window.location.replace('about:blank');
-            setTimeout(function(){
-              try { window.close(); } catch(e){}
-              try { window.top && window.top.close && window.top.close(); } catch(e){}
-            }, 150);
-          } catch(e){}
+          // If close is blocked (typical in browser tabs), fall back to login
+          setTimeout(function(){
+            try { window.location.replace(loginURL); } catch(e) { window.location.href = loginURL; }
+          }, 500);
         }
         document.getElementById('closeBtn').addEventListener('click', tryClose);
         // Attempt automatic close shortly after load

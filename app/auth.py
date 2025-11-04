@@ -66,7 +66,7 @@ def register():
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for("auth.goodbye"))
+    return redirect(url_for("auth.login"))
 
 
 @auth_bp.route("/goodbye")
