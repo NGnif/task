@@ -67,6 +67,10 @@ _t = {
         "priority.low": "Low",
         "priority.medium": "Medium",
         "priority.high": "High",
+        "users": "Users",
+        "no_users": "No users found.",
+        "delete_conversation": "Delete Conversation",
+        "delete_worker": "Delete Worker",
     },
     "ar": {
         "app_name": "مدير المهام",
@@ -129,6 +133,10 @@ _t = {
         "priority.low": "منخفض",
         "priority.medium": "متوسط",
         "priority.high": "مرتفع",
+        "users": "المستخدمون",
+        "no_users": "لا يوجد مستخدمون.",
+        "delete_conversation": "حذف المحادثة",
+        "delete_worker": "حذف الموظف",
     },
 }
 

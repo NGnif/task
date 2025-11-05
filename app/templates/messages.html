@@ -15,10 +15,10 @@
     {% if current_user.role=='owner' and other and other.role=='worker' %}
       <div class="btn-row">
         <form method="post" action="{{ url_for('main.delete_thread', user_id=other.id) }}" style="display:inline" onsubmit="return confirm('Delete this conversation?');">
-          <button class="btn danger" type="submit">{{ t('delete') }}</button>
+          <button class="btn danger" type="submit">{{ t('delete_conversation') }}</button>
         </form>
         <form method="post" action="{{ url_for('main.delete_user', user_id=other.id) }}" style="display:inline" onsubmit="return confirm('Delete this worker and reassign tasks to owner?');">
-          <button class="btn danger" type="submit">{{ t('delete') }}</button>
+          <button class="btn danger" type="submit">{{ t('delete_worker') }}</button>
         </form>
       </div>
     {% endif %}

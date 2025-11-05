@@ -92,6 +92,16 @@ def tasks():
     )
 
 
+@main_bp.route("/users")
+@login_required
+def users():
+    if not current_user.is_owner():
+        flash("Only the owner can view users")
+        return redirect(url_for("main.tasks"))
+    users_list = User.query.order_by(User.username.asc()).all()
+    return render_template("users.html", users=users_list)
+
+
 @main_bp.route("/tasks/create", methods=["GET", "POST"])
 @login_required
 def create_task():

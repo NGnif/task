@@ -25,6 +25,7 @@
             <a class="btn bell {% if notif_messages %}bell-alert{% endif %}" href="{{ url_for('main.messages_root') }}" aria-label="Messages">🔔{% if notif_messages %}<span class="bubble">{{ notif_messages }}</span>{% endif %}</a>
             <span class="user">{{ current_user.username }} ({{ t('owner') if current_user.role=='owner' else t('worker') }})</span>
             {% if current_user.role=='owner' %}
+              <a class="btn" href="{{ url_for('main.users') }}">{{ t('users') }}</a>
               <a class="btn" href="{{ url_for('auth.register') }}">{{ t('create_user') }}</a>
             {% endif %}
             <a class="btn" href="{{ url_for('i18n.set_lang', locale='ar' if locale=='en' else 'en') }}">{{ 'العربية' if locale=='en' else 'English' }}</a>
