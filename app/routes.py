@@ -658,7 +658,6 @@ def messages_with(user_id: int):
     return render_template("messages.html", other=other, thread=thread, workers=workers, pending_reqs=pending_reqs)
 
 
-# Owner: delete a worker user (cleanup references)
 @main_bp.route("/users/<int:user_id>/delete", methods=["POST"])
 @login_required
 def delete_user(user_id: int):
@@ -708,7 +707,6 @@ def delete_user(user_id: int):
     return redirect(url_for("main.tasks"))
 
 
-# Owner: delete a single message
 @main_bp.route("/messages/<int:message_id>/delete", methods=["POST"])
 @login_required
 def delete_message(message_id: int):
@@ -723,7 +721,6 @@ def delete_message(message_id: int):
     return redirect(url_for("main.messages_with", user_id=other_id))
 
 
-# Owner: delete entire conversation thread with a worker
 @main_bp.route("/messages/<int:user_id>/delete-thread", methods=["POST"])
 @login_required
 def delete_thread(user_id: int):
