@@ -12,6 +12,16 @@
         </select>
       </form>
     {% endif %}
+    {% if current_user.role=='owner' and other and other.role=='worker' %}
+      <div class="btn-row">
+        <form method="post" action="{{ url_for('main.delete_thread', user_id=other.id) }}" style="display:inline" onsubmit="return confirm('Delete this conversation?');">
+          <button class="btn danger" type="submit">{{ t('delete') }}</button>
+        </form>
+        <form method="post" action="{{ url_for('main.delete_user', user_id=other.id) }}" style="display:inline" onsubmit="return confirm('Delete this worker and reassign tasks to owner?');">
+          <button class="btn danger" type="submit">{{ t('delete') }}</button>
+        </form>
+      </div>
+    {% endif %}
   </div>
 
   {% if current_user.is_owner and pending_reqs %}
@@ -64,7 +74,13 @@
         {% elif 'was marked done' in b %}
           {% set action = t('complete') %}
         {% endif %}
-        <div class="time">{{ m.sender.username if m.sender else '-' }} • {{ m.created_at.strftime('%Y-%m-%d %H:%M') }}{% if action %} • {{ action }}{% endif %}</div>
+        <div class="time">{{ m.sender.username if m.sender else '-' }} • {{ m.created_at.strftime('%Y-%m-%d %H:%M') }}{% if action %} • {{ action }}{% endif %}
+          {% if current_user.role=='owner' %}
+            <form method="post" action="{{ url_for('main.delete_message', message_id=m.id) }}" style="display:inline" onsubmit="return confirm('Delete this message?');">
+              <button class="btn danger" type="submit">{{ t('delete') }}</button>
+            </form>
+          {% endif %}
+        </div>
       </div>
     {% else %}
       <div class="muted">{{ t('no_messages') }}</div>

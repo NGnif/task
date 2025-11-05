@@ -658,6 +658,99 @@ def messages_with(user_id: int):
     return render_template("messages.html", other=other, thread=thread, workers=workers, pending_reqs=pending_reqs)
 
 
+# Owner: delete a worker user (cleanup references)
+@main_bp.route("/users/<int:user_id>/delete", methods=["POST"])
+@login_required
+def delete_user(user_id: int):
+    user = User.query.get_or_404(user_id)
+    if not current_user.is_owner():
+        flash("Only the owner can delete users")
+        return redirect(url_for("main.messages_root"))
+    if user.role != "worker":
+        flash("You cannot delete the owner account")
+        return redirect(url_for("main.messages_root"))
+
+    owner = _get_owner()
+    if not owner or owner.id == user.id:
+        flash("Owner account not found or invalid target")
+        return redirect(url_for("main.messages_root"))
+
+    # Remove messages by/with the user
+    try:
+        Message.query.filter(
+            (Message.sender_id == user.id) | (Message.receiver_id == user.id)
+        ).delete(synchronize_session=False)
+    except Exception:
+        pass
+
+    # Remove pending requests created by the user; null out decisions by the user (if any)
+    try:
+        TaskCompletionRequest.query.filter_by(requested_by_id=user.id).delete(synchronize_session=False)
+    except Exception:
+        pass
+    try:
+        TaskCompletionRequest.query.filter_by(decision_by_id=user.id).update({"decision_by_id": None})
+    except Exception:
+        pass
+
+    # Reassign tasks to owner where needed
+    try:
+        for t in Task.query.filter_by(assignee_id=user.id).all():
+            t.assignee_id = owner.id
+        for t in Task.query.filter_by(created_by_id=user.id).all():
+            t.created_by_id = owner.id
+    except Exception:
+        pass
+
+    db.session.delete(user)
+    db.session.commit()
+    flash("Worker deleted; tasks reassigned to owner and messages removed")
+    return redirect(url_for("main.tasks"))
+
+
+# Owner: delete a single message
+@main_bp.route("/messages/<int:message_id>/delete", methods=["POST"])
+@login_required
+def delete_message(message_id: int):
+    msg = Message.query.get_or_404(message_id)
+    if not current_user.is_owner():
+        flash("Only the owner can delete messages")
+        return redirect(url_for("main.messages_root"))
+    other_id = msg.sender_id if msg.sender_id != current_user.id else msg.receiver_id
+    db.session.delete(msg)
+    db.session.commit()
+    flash("Message deleted")
+    return redirect(url_for("main.messages_with", user_id=other_id))
+
+
+# Owner: delete entire conversation thread with a worker
+@main_bp.route("/messages/<int:user_id>/delete-thread", methods=["POST"])
+@login_required
+def delete_thread(user_id: int):
+    if not current_user.is_owner():
+        flash("Only the owner can delete messages")
+        return redirect(url_for("main.messages_root"))
+    other = User.query.get_or_404(user_id)
+    if other.role != "worker":
+        flash("Owners can only manage threads with workers")
+        return redirect(url_for("main.messages_root"))
+    try:
+        Message.query.filter(
+            (
+                (Message.sender_id == current_user.id) & (Message.receiver_id == other.id)
+            )
+            | (
+                (Message.sender_id == other.id) & (Message.receiver_id == current_user.id)
+            )
+        ).delete(synchronize_session=False)
+        db.session.commit()
+        flash("Conversation deleted")
+    except Exception:
+        db.session.rollback()
+        flash("Failed to delete conversation")
+    return redirect(url_for("main.messages_with", user_id=other.id))
+
+
 # Worker: request completion (requires owner approval)
 @main_bp.route("/tasks/<int:task_id>/request-complete", methods=["POST"])
 @login_required
