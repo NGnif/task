@@ -496,7 +496,7 @@ select{
 button.btn-danger {
   background-color:var(--danger) !important;
   border-color:var(--danger) !important;
-  color:#111827 !important;
+  color:#fafafa !important;
 }
 
 /* Also update the bell alert */
@@ -504,4 +504,35 @@ button.btn-danger {
   background-color:var(--danger) !important;
   border-color:var(--danger) !important;
   color:#111827 !important;
+}
+/* FINAL OVERRIDES: make all buttons clearer and remove red delete */
+
+/* All buttons: bold + bigger text */
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-success,
+.btn-info,
+.btn-warning,
+.btn-danger {
+  font-weight:700 !important;
+  font-size:16px !important;
+}
+
+/* Override ALL delete/danger buttons (Bootstrap etc.) */
+.btn-danger,
+.btn.btn-danger,
+button.btn-danger,
+a.btn-danger {
+  background-color:#b3e6cc !important;  /* your new color */
+  border-color:#b3e6cc !important;
+  color:#111827 !important;
+}
+
+/* Optional: Actions row buttons look consistent */
+.actions .btn {
+  font-weight:700 !important;
+  font-size:16px !important;
+  border-radius:8px !important;
+  padding:10px 18px !important;
 }
