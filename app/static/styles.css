@@ -12,6 +12,7 @@
   --navbar-bg:#1877F2;
   --navbar-fg:#ffffff;
   --navbar-border:#1463d8;
+  --alert:#ef4444; /* For alert/bell notifications */
 }
 
 *{
@@ -222,6 +223,7 @@ select{
   display:grid;
   gap:8px;
   color:#1c1e21;
+  position:relative; /* For bell positioning */
 }
 
 .card-head{
@@ -233,6 +235,7 @@ select{
 
 .card-title{
   font-weight:600;
+  padding-right:30px; /* Space for the bell */
 }
 
 .card-desc{
@@ -315,6 +318,109 @@ select{
   background:#e0f2fe;
   color:#075985;
   border-color:#bae6fd;
+}
+
+/* =========================================================
+   CARD BELL NOTIFICATION INDICATOR
+   ========================================================= */
+.card-bell {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--muted);
+  color: white;
+  font-size: 12px;
+  transition: all 0.3s ease;
+  opacity: 0.6;
+}
+
+/* Bell with events/notifications */
+.card-bell.has-events {
+  background: var(--alert);
+  opacity: 1;
+  animation: pulse-bell 2s infinite;
+  box-shadow: 0 0 0 rgba(239, 68, 68, 0.4);
+}
+
+/* Pulse animation for bell with events */
+@keyframes pulse-bell {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+/* Bell with different event types */
+.card-bell.event-urgent {
+  background: #dc2626; /* Darker red for urgency */
+  animation: pulse-urgent 1.5s infinite;
+}
+
+@keyframes pulse-urgent {
+  0% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(220, 38, 38, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+  }
+}
+
+.card-bell.event-warning {
+  background: var(--warn);
+  animation: pulse-warning 2s infinite;
+}
+
+@keyframes pulse-warning {
+  0% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(245, 158, 11, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+  }
+}
+
+.card-bell.event-info {
+  background: var(--primary);
+}
+
+.card-bell.event-success {
+  background: var(--ok);
+}
+
+/* Bell with notification count */
+.card-bell.with-count::after {
+  content: attr(data-count);
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: var(--alert);
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 10px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
 }
 
 /* =========================================================
@@ -452,6 +558,13 @@ select{
     font-size:17px !important; /* Slightly larger on mobile */
     max-width:90%;
     padding:14px 18px;
+  }
+  
+  /* Mobile bell adjustments */
+  .card-bell {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
   }
 }
 
