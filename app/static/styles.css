@@ -576,6 +576,25 @@ select{
   position:relative;
 }
 
+/* Card bell numeric bubble (match navbar style) */
+.card .btn.bell{
+  position:relative;
+}
+.card .btn.bell .bubble{
+  position:absolute;
+  top:-6px;
+  right:-6px;
+  background:#ef4444;
+  color:#fff;
+  border-radius:999px;
+  font-size:11px;
+  line-height:1;
+  padding:3px 6px;
+  min-width:18px;
+  text-align:center;
+  border:2px solid #ffffff; /* ring on white cards */
+}
+
 .navbar .btn.primary{
   background:var(--primary);
   color:#ffffff;

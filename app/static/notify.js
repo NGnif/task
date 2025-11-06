@@ -2,6 +2,8 @@
 (function(){
   const lastMKey = 'tm_last_msgs';
   const lastAKey = 'tm_last_appr';
+  let lastMessages = 0;
+  let lastApprovals = 0;
 
   // Initialize last known counts from server-rendered values on first load
   try {
@@ -46,7 +48,20 @@
     const set = new Set(pendingIds || []);
     document.querySelectorAll('.card .btn.bell[data-task-id]').forEach((el)=>{
       const id = Number(el.getAttribute('data-task-id')||'0');
-      if (set.has(id)) el.classList.add('bell-alert'); else el.classList.remove('bell-alert');
+      const shouldAlert = set.has(id);
+      if (shouldAlert){
+        el.classList.add('bell-alert');
+        // If there are unread messages, show the same number on the card bell
+        let b = el.querySelector('.bubble');
+        if (lastMessages > 0){
+          if (!b){ b = document.createElement('span'); b.className='bubble'; el.appendChild(b); }
+          b.textContent = String(lastMessages);
+        } else if (b){ b.remove(); }
+      } else {
+        el.classList.remove('bell-alert');
+        const b = el.querySelector('.bubble');
+        if (b) b.remove();
+      }
     });
   }
 
@@ -60,6 +75,8 @@
         if (messages>lm || (hasApprovalsLink && approvals>la)) setTimeout(()=>beep(), 200);
         localStorage.setItem(lastMKey, String(messages||0));
         localStorage.setItem(lastAKey, String(approvals||0));
+        lastMessages = Number(messages||0);
+        lastApprovals = Number(approvals||0);
         updateHeader(messages||0, approvals||0);
         updateCards(pending_task_ids||[]);
       })
