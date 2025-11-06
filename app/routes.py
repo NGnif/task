@@ -570,6 +570,46 @@ def notifications_poll():
     except Exception:
         pass
 
+    # Also highlight task cards if there are unread chat messages
+    try:
+        # Collect senders that have unread messages for the current user
+        unread_msgs = Message.query.filter_by(receiver_id=current_user.id, read_at=None).all()
+        unread_senders = {m.sender_id for m in unread_msgs}
+        msg_task_ids = []
+        if unread_senders:
+            if current_user.is_owner():
+                # Owner: highlight tasks assigned to workers who have unread messages
+                try:
+                    rows = (
+                        Task.query
+                        .with_entities(Task.id)
+                        .filter(Task.assignee_id.in_(list(unread_senders)))
+                        .filter(Task.status != "done")
+                        .all()
+                    )
+                    msg_task_ids = [r[0] if isinstance(r, tuple) else r.id for r in rows]
+                except Exception:
+                    msg_task_ids = []
+            else:
+                # Worker: highlight own active tasks if there are unread messages from owner
+                owner = _get_owner()
+                if owner and (owner.id in unread_senders):
+                    try:
+                        rows = (
+                            Task.query
+                            .with_entities(Task.id)
+                            .filter(Task.assignee_id == current_user.id)
+                            .filter(Task.status != "done")
+                            .all()
+                        )
+                        msg_task_ids = [r[0] if isinstance(r, tuple) else r.id for r in rows]
+                    except Exception:
+                        msg_task_ids = []
+        # Merge with existing pending ids (unique)
+        pending_ids = list({*pending_ids, *msg_task_ids})
+    except Exception:
+        pass
+
     return jsonify(messages=msg_count, approvals=appr_count, pending_task_ids=pending_ids)
 
 
@@ -646,11 +686,23 @@ def messages_with(user_id: int):
         .all()
     )
 
-    # Mark incoming as read
-    for m in thread:
-        if m.receiver_id == current_user.id and m.read_at is None:
-            m.read_at = datetime.utcnow()
-    db.session.commit()
+    # Mark incoming as read and optionally notify sender (read receipt)
+    unread_incoming = [m for m in thread if m.receiver_id == current_user.id and m.read_at is None]
+    if unread_incoming:
+        now = datetime.utcnow()
+        for m in unread_incoming:
+            m.read_at = now
+        # If a worker just read owner's messages, inform the owner
+        try:
+            if current_user.role == "worker" and other.role == "owner":
+                last_ts = max((m.created_at for m in unread_incoming), default=now)
+                body = f"I have read your message(s). Latest at {last_ts.strftime('%Y-%m-%d %H:%M')}."
+                db.session.add(Message(sender_id=current_user.id, receiver_id=other.id, body=body))
+        except Exception:
+            pass
+        db.session.commit()
+    else:
+        db.session.commit()
 
     # Owner list of workers for quick switching
     workers = []
