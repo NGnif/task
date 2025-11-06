@@ -5,7 +5,7 @@
   --text:#1c1e21;
   --muted:#65676b;
   --primary:#1877F2;
-  --danger:#b3e6cc; /* updated from red */
+  --danger:#b3e6cc; /* custom non-red danger */
   --border:#e4e6eb;
   --ok:#31a24c;
   --warn:#f59e0b;
@@ -120,7 +120,7 @@ select{
   padding:10px;
 }
 
-/* Base button style: bold + bigger */
+/* Base button style */
 .btn{
   background:#e4e6eb;
   color:#1c1e21;
@@ -130,8 +130,6 @@ select{
   text-decoration:none;
   display:inline-block;
   touch-action:manipulation;
-  font-weight:700;      /* bold text */
-  font-size:16px;       /* larger text */
 }
 
 /* Primary button */
@@ -139,14 +137,13 @@ select{
   background:var(--primary);
   border-color:transparent;
   color:#ffffff;
-  font-weight:700;
+  font-weight:600;
 }
 
-/* Danger button uses updated color */
+/* Our custom 'danger' (non-Bootstrap) */
 .btn.danger{
   background:var(--danger);
   border-color:transparent;
-  color:#111827;
 }
 
 .table{
@@ -419,13 +416,6 @@ select{
   font-size:16px;
 }
 
-/* Bell alert uses same danger color (no red) */
-.btn.bell.bell-alert{
-  background:var(--danger);
-  color:#111827;
-  border-color:var(--danger);
-}
-
 /* Chat */
 .chat{
   display:grid;
@@ -482,4 +472,36 @@ select{
   .chat{
     max-height:60dvh;
   }
+}
+
+/* =========================================================
+   OVERRIDES TO ENSURE NO RED + CLEARER (BOLD/LARGER) TEXT
+   ========================================================= */
+
+/* Make all buttons bold & bigger (including Bootstrap ones) */
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-success,
+.btn-info,
+.btn-warning,
+.btn-danger {
+  font-weight:700 !important;
+  font-size:16px !important;
+}
+
+/* Replace red danger with your custom color everywhere */
+.btn-danger,
+.btn.btn-danger,
+button.btn-danger {
+  background-color:var(--danger) !important;
+  border-color:var(--danger) !important;
+  color:#111827 !important;
+}
+
+/* Also update the bell alert */
+.btn.bell.bell-alert{
+  background-color:var(--danger) !important;
+  border-color:var(--danger) !important;
+  color:#111827 !important;
 }
