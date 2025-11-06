@@ -317,6 +317,72 @@ select{
   border-color:#bae6fd;
 }
 
+/* =========================================================
+   CHAT MESSAGES - INCREASED FONT SIZE
+   ========================================================= */
+.chat{
+  display:grid;
+  gap:12px;
+  margin:12px 0 8px;
+  max-height:60vh;
+  overflow:auto;
+  padding:12px;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:12px;
+}
+
+.msg{
+  display:grid;
+  gap:6px;
+}
+
+.msg .bubble{
+  display:inline-block;
+  padding:12px 16px;
+  border-radius:18px;
+  max-width:85%;
+  word-wrap:break-word;
+  white-space:pre-wrap;
+  font-size:16px !important; /* Increased font size */
+  line-height:1.4;
+}
+
+.msg.me{
+  justify-items:end;
+}
+
+.msg.me .bubble{
+  background:#f59e0b;
+  color:#111827;
+  border:1px solid #b45309;
+  font-weight:500;
+}
+
+.msg.them .bubble{
+  background:#f3f4f6;
+  color:#111827;
+  border:1px solid #e5e7eb;
+  font-weight:500;
+}
+
+.msg .time{
+  font-size:13px;
+  color:var(--muted);
+  padding:0 8px;
+}
+
+.send-box textarea{
+  resize:vertical;
+  font-size:16px !important; /* Larger font for message input too */
+}
+
+@supports (height: 1dvh){
+  .chat{
+    max-height:60dvh;
+  }
+}
+
 /* Responsive tweaks */
 @media (max-width: 720px){
   .container{
@@ -380,6 +446,13 @@ select{
   .btn{
     min-height:44px;
   }
+  
+  /* Mobile chat adjustments */
+  .msg .bubble{
+    font-size:17px !important; /* Slightly larger on mobile */
+    max-width:90%;
+    padding:14px 18px;
+  }
 }
 
 /* Navbar button styling on colored header */
@@ -416,96 +489,9 @@ select{
   font-size:16px;
 }
 
-/* Chat */
-.chat{
-  display:grid;
-  gap:8px;
-  margin:12px 0 8px;
-  max-height:60vh;
-  overflow:auto;
-  padding:8px;
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:12px;
-}
-
-.msg{
-  display:grid;
-  gap:4px;
-}
-
-.msg .bubble{
-  display:inline-block;
-  padding:8px 12px;
-  border-radius:12px;
-  max-width:80%;
-  word-wrap:break-word;
-  white-space:pre-wrap;
-}
-
-.msg.me{
-  justify-items:end;
-}
-
-.msg.me .bubble{
-  background:#f59e0b;
-  color:#111827;
-  border:1px solid #b45309;
-}
-
-.msg.them .bubble{
-  background:#f3f4f6;
-  color:#111827;
-  border:1px solid #e5e7eb;
-}
-
-.msg .time{
-  font-size:12px;
-  color:var(--muted);
-}
-
-.send-box textarea{
-  resize:vertical;
-}
-
-@supports (height: 1dvh){
-  .chat{
-    max-height:60dvh;
-  }
-}
-
 /* =========================================================
-   OVERRIDES TO ENSURE NO RED + CLEARER (BOLD/LARGER) TEXT
+   COMPLETE OVERRIDES: NO RED DELETE + BOLD/LARGER TEXT
    ========================================================= */
-
-/* Make all buttons bold & bigger (including Bootstrap ones) */
-.btn,
-.btn-primary,
-.btn-secondary,
-.btn-success,
-.btn-info,
-.btn-warning,
-.btn-danger {
-  font-weight:700 !important;
-  font-size:16px !important;
-}
-
-/* Replace red danger with your custom color everywhere */
-.btn-danger,
-.btn.btn-danger,
-button.btn-danger {
-  background-color:var(--danger) !important;
-  border-color:var(--danger) !important;
-  color:#fafafa !important;
-}
-
-/* Also update the bell alert */
-.btn.bell.bell-alert{
-  background-color:var(--danger) !important;
-  border-color:var(--danger) !important;
-  color:#111827 !important;
-}
-/* FINAL OVERRIDES: make all buttons clearer and remove red delete */
 
 /* All buttons: bold + bigger text */
 .btn,
@@ -517,22 +503,80 @@ button.btn-danger {
 .btn-danger {
   font-weight:700 !important;
   font-size:16px !important;
+  border-radius:8px !important;
 }
 
-/* Override ALL delete/danger buttons (Bootstrap etc.) */
+/* Override ALL delete/danger buttons (Bootstrap etc.) - NO RED */
 .btn-danger,
 .btn.btn-danger,
 button.btn-danger,
-a.btn-danger {
-  background-color:#b3e6cc !important;  /* your new color */
+a.btn-danger,
+.actions .btn.danger,
+.card-actions .btn.danger {
+  background-color:#b3e6cc !important;
   border-color:#b3e6cc !important;
   color:#111827 !important;
 }
 
-/* Optional: Actions row buttons look consistent */
-.actions .btn {
+/* Danger button hover states */
+.btn-danger:hover,
+.btn.btn-danger:hover,
+button.btn-danger:hover,
+a.btn-danger:hover {
+  background-color:#9dd9ba !important;
+  border-color:#9dd9ba !important;
+  color:#111827 !important;
+}
+
+/* Alert/danger contexts */
+.alert-danger,
+.alert.alert-danger,
+.bg-danger {
+  background-color: var(--danger) !important;
+  border-color: var(--danger) !important;
+  color: #111827 !important;
+}
+
+/* Text danger color */
+.text-danger {
+  color: #111827 !important;
+}
+
+/* Form validation */
+input:invalid,
+textarea:invalid,
+select:invalid {
+  border-color: var(--danger) !important;
+}
+
+.form-error {
+  color: #111827 !important;
+  background-color: var(--danger) !important;
+  border: 1px solid var(--danger) !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  padding: 12px !important;
+}
+
+/* Status indicators */
+.status-danger {
+  background-color: var(--danger) !important;
+  color: #111827 !important;
+}
+
+/* Make action buttons consistent */
+.actions .btn,
+.card-actions .btn {
   font-weight:700 !important;
   font-size:16px !important;
   border-radius:8px !important;
   padding:10px 18px !important;
+  min-height:44px;
+}
+
+/* Ensure the bell alert uses custom danger color */
+.btn.bell.bell-alert{
+  background-color:var(--danger) !important;
+  border-color:var(--danger) !important;
+  color:#111827 !important;
 }
