@@ -11,6 +11,8 @@
     const initA = typeof window!== 'undefined' && typeof window.TM_NOTIF_APPROVALS !== 'undefined' ? Number(window.TM_NOTIF_APPROVALS||0) : 0;
     if (localStorage.getItem(lastMKey) === null) localStorage.setItem(lastMKey, String(initM));
     if (localStorage.getItem(lastAKey) === null) localStorage.setItem(lastAKey, String(initA));
+    lastMessages = initM;
+    lastApprovals = initA;
   } catch (e) {}
 
   let audioCtx;
@@ -46,22 +48,28 @@
 
   function updateCards(pendingIds){
     const set = new Set(pendingIds || []);
-    document.querySelectorAll('.card .btn.bell[data-task-id]').forEach((el)=>{
-      const id = Number(el.getAttribute('data-task-id')||'0');
-      const shouldAlert = set.has(id);
-      if (shouldAlert){
-        el.classList.add('bell-alert');
-        // If there are unread messages, show the same number on the card bell
-        let b = el.querySelector('.bubble');
-        if (lastMessages > 0){
-          if (!b){ b = document.createElement('span'); b.className='bubble'; el.appendChild(b); }
-          b.textContent = String(lastMessages);
-        } else if (b){ b.remove(); }
-      } else {
-        el.classList.remove('bell-alert');
-        const b = el.querySelector('.bubble');
-        if (b) b.remove();
-      }
+    document.querySelectorAll('.card .btn.bell').forEach((el)=>{
+      const idAttr = el.getAttribute('data-task-id');
+      const id = idAttr ? Number(idAttr) : null;
+      const shouldAlert = (id !== null) && set.has(id);
+      if (shouldAlert){ el.classList.add('bell-alert'); } else { el.classList.remove('bell-alert'); }
+      // Always mirror the header unread count on card bells when > 0
+      let b = el.querySelector('.bubble');
+      if (lastMessages > 0){
+        if (!b){ b = document.createElement('span'); b.className='bubble'; el.appendChild(b); }
+        b.textContent = String(lastMessages);
+      } else if (b){ b.remove(); }
+    });
+  }
+
+  // On first load, render numeric bubble on card bells (do not change alert classes)
+  function initCardBubbles(){
+    document.querySelectorAll('.card .btn.bell').forEach((el)=>{
+      let b = el.querySelector('.bubble');
+      if (lastMessages > 0){
+        if (!b){ b = document.createElement('span'); b.className='bubble'; el.appendChild(b); }
+        b.textContent = String(lastMessages);
+      } else if (b){ b.remove(); }
     });
   }
 
@@ -84,6 +92,7 @@
   }
 
   // Initial refresh then poll every 7s
+  initCardBubbles();
   setTimeout(poll, 500);
   setInterval(poll, 7000);
 })();

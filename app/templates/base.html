@@ -7,7 +7,7 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <title>{% block title %}{{ t('app_name') }}{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=12" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=13" />
     <link rel="manifest" href="{{ url_for('pwa.manifest') }}" />
     <link rel="apple-touch-icon" href="/icons/192.png" />
   </head>
@@ -53,7 +53,7 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('{{ url_for('pwa.service_worker') }}?v=10').catch(() => {});
+          navigator.serviceWorker.register("{{ url_for('pwa.service_worker') }}?v=11").catch(() => {});
         });
       }
       // Mobile nav toggle
@@ -67,7 +67,7 @@
       window.TM_NOTIF_MESSAGES = {{ notif_messages or 0 }};
       window.TM_NOTIF_APPROVALS = {{ notif_approvals or 0 }};
     </script>
-    <script src="{{ url_for('static', filename='notify.js') }}?v=11"></script>
+    <script src="{{ url_for('static', filename='notify.js') }}?v=12"></script>
     <script>
       (function(){
         const REFRESH_MS = 10000;
