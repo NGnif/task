@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% block title %}{{ t('tasks') }} - {{ t('app_name') }}{% endblock %}
+{% block content %}
+  <div class="header-row">
+    <h1>{{ t('dashboard') if is_owner else t('my_tasks') }}</h1>
+    <div class="btn-row">
+      {% if is_owner %}
+        <a class="btn" href="{{ url_for('main.import_csv') }}">{{ t('import_csv') }}</a>
+        <a class="btn primary" href="{{ url_for('main.create_task') }}">{{ t('new_task') }}</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <form class="filter" method="get">
+    <input type="text" name="q" placeholder="{{ t('search') }}" value="{{ request.args.get('q','') }}" />
+    <select name="status">
+      <option value="">{{ t('status') }}</option>
+      {% for s in ['todo','in_progress','done'] %}
+        <option value="{{ s }}" {% if request.args.get('status')==s %}selected{% endif %}>{{ status_label(s) }}</option>
+      {% endfor %}
+    </select>
+    {% if is_owner %}
+      <select name="assignee">
+        <option value="">{{ t('assignee') }}</option>
+        {% for u in users %}
+          <option value="{{ u.id }}" {% if request.args.get('assignee')|int == u.id %}selected{% endif %}>{{ u.username }}</option>
+        {% endfor %}
+      </select>
+    {% endif %}
+    <button class="btn" type="submit">OK</button>
+  </form>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>{{ t('title') }}</th>
+        <th>{{ t('assignee') }}</th>
+        <th>{{ t('status') }}</th>
+        <th>{{ t('priority') }}</th>
+        <th>{{ t('due') }}</th>
+        <th>{{ t('actions') }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for tsk in tasks %}
+        <tr class="row-status-{{ tsk.status }}">
+          <td>#{{ tsk.id }}</td>
+          <td>
+            <div class="title">{{ tsk.title }}{% if pending_map and pending_map.get(tsk.id) %} <span class="badge warn">{{ t('pending_approval') }}</span>{% endif %}</div>
+            {% if tsk.description %}<div class="muted">{{ tsk.description }}</div>{% endif %}
+          </td>
+          <td>{{ tsk.assignee.username if tsk.assignee else '-' }}</td>
+          <td>{{ status_label(tsk.status) }}</td>
+          <td>{{ priority_label(tsk.priority) }}</td>
+          <td>{% if tsk.due_date %}{{ tsk.due_date.isoformat() }}{% endif %}</td>
+          <td class="actions">
+            {% if is_owner %}
+              <a class="btn" href="{{ url_for('main.edit_task', task_id=tsk.id) }}">{{ t('edit') }}</a>
+              {% if tsk.status != 'done' %}
+                <form method="post" action="{{ url_for('main.progress_task', task_id=tsk.id) }}" style="display:inline">
+                  {% if tsk.status == 'todo' %}
+                    <input type="hidden" name="state" value="in_progress" />
+                    <button class="btn" type="submit">{{ t('start') }}</button>
+                  {% else %}
+                    <input type="hidden" name="state" value="todo" />
+                    <button class="btn" type="submit">{{ t('back_to_todo') }}</button>
+                  {% endif %}
+                </form>
+              {% endif %}
+              <form method="post" action="{{ url_for('main.toggle_task', task_id=tsk.id) }}" style="display:inline">
+                <button class="btn" type="submit">{{ t('reopen') if tsk.status=='done' else t('complete') }}</button>
+              </form>
+              <form method="post" action="{{ url_for('main.delete_task', task_id=tsk.id) }}" style="display:inline" onsubmit="return confirm('Delete this task?');">
+                <button class="btn danger" type="submit">{{ t('delete') }}</button>
+              </form>
+            {% else %}
+              {% if tsk.assignee_id==current_user.id and tsk.status!='done' %}
+                <form method="post" action="{{ url_for('main.progress_task', task_id=tsk.id) }}" style="display:inline">
+                  {% if tsk.status == 'todo' %}
+                    <input type="hidden" name="state" value="in_progress" />
+                    <button class="btn" type="submit">{{ t('start') }}</button>
+                  {% else %}
+                    <input type="hidden" name="state" value="todo" />
+                    <button class="btn" type="submit">{{ t('back_to_todo') }}</button>
+                  {% endif %}
+                </form>
+                {% if pending_map and pending_map.get(tsk.id) %}
+                  <span class="muted">{{ t('pending_approval') }}</span>
+                {% else %}
+                  <form method="post" action="{{ url_for('main.request_complete', task_id=tsk.id) }}" style="display:inline">
+                    <button class="btn" type="submit">{{ t('request_done') }}</button>
+                  </form>
+                {% endif %}
+              {% else %}
+                <span class="muted">—</span>
+              {% endif %}
+            {% endif %}
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="7" class="muted">{{ t('no_tasks') }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Mobile cards view -->
+  <div class="cards" role="list">
+    {% for item in tasks %}
+      <article class="card" role="listitem">
+        <div class="card-head">
+          <div class="card-title">#{{ item.id }} - {{ item.title }}</div>
+          <div class="badges">
+            <span class="badge status-{{ item.status }}">{{ status_label(item.status) }}</span>
+            <span class="badge prio-{{ item.priority }}">{{ priority_label(item.priority) }}</span>
+            {% if pending_map and pending_map.get(item.id) %}<span class="badge warn">{{ t('pending_approval') }}</span>{% endif %}
+          </div>
+        </div>
+        {% if item.description %}
+          <div class="card-desc clamp-2">{{ item.description }}</div>
+        {% endif %}
+        <div class="card-meta">
+          <span>{{ t('assignee') }}: <strong>{{ item.assignee.username if item.assignee else '-' }}</strong></span>
+          {% if item.due_date %}<span>{{ t('due') }}: <strong>{{ item.due_date.isoformat() }}</strong></span>{% endif %}
+        </div>
+        <div class="card-actions">
+          {% if is_owner %}
+            <a class="btn" href="{{ url_for('main.edit_task', task_id=item.id) }}">{{ t('edit') }}</a>
+            {% if item.status != 'done' %}
+              <form method="post" action="{{ url_for('main.progress_task', task_id=item.id) }}">
+                {% if item.status == 'todo' %}
+                  <input type="hidden" name="state" value="in_progress" />
+                  <button class="btn" type="submit">{{ t('start') }}</button>
+                {% else %}
+                  <input type="hidden" name="state" value="todo" />
+                  <button class="btn" type="submit">{{ t('back_to_todo') }}</button>
+                {% endif %}
+              </form>
+            {% endif %}
+            <form method="post" action="{{ url_for('main.toggle_task', task_id=item.id) }}">
+              <button class="btn" type="submit">{{ t('reopen') if item.status=='done' else t('complete') }}</button>
+            </form>
+            <form method="post" action="{{ url_for('main.delete_task', task_id=item.id) }}" onsubmit="return confirm('Delete this task?');">
+              <button class="btn danger" type="submit">{{ t('delete') }}</button>
+            </form>
+          {% else %}
+            {% if item.assignee_id==current_user.id and item.status!='done' %}
+              <form method="post" action="{{ url_for('main.progress_task', task_id=item.id) }}">
+                {% if item.status == 'todo' %}
+                  <input type="hidden" name="state" value="in_progress" />
+                  <button class="btn" type="submit">{{ t('start') }}</button>
+                {% else %}
+                  <input type="hidden" name="state" value="todo" />
+                  <button class="btn" type="submit">{{ t('back_to_todo') }}</button>
+                {% endif %}
+              </form>
+              {% if pending_map and pending_map.get(item.id) %}
+                <span class="muted">{{ t('pending_approval') }}</span>
+              {% else %}
+                <form method="post" action="{{ url_for('main.request_complete', task_id=item.id) }}">
+                  <button class="btn" type="submit">{{ t('request_done') }}</button>
+                </form>
+              {% endif %}
+            {% endif %}
+          {% endif %}
+          {% if is_owner %}
+            <a class="btn bell {% if pending_map and pending_map.get(item.id) %}bell-alert{% endif %}"
+               data-task-id="{{ item.id }}"
+               href="{{ url_for('main.messages_with', user_id=item.assignee_id) }}"
+               aria-label="Messages">🔔{% if notif_messages %}<span class="bubble">{{ notif_messages }}</span>{% endif %}</a>
+          {% else %}
+            {% if owner_id %}
+              <a class="btn bell {% if pending_map and pending_map.get(item.id) %}bell-alert{% endif %}"
+                 data-task-id="{{ item.id }}"
+                 href="{{ url_for('main.messages_with', user_id=owner_id) }}"
+                 aria-label="Messages">🔔{% if notif_messages %}<span class="bubble">{{ notif_messages }}</span>{% endif %}</a>
+            {% else %}
+              <a class="btn bell {% if pending_map and pending_map.get(item.id) %}bell-alert{% endif %}"
+                 data-task-id="{{ item.id }}"
+                 href="{{ url_for('main.messages_root') }}"
+                 aria-label="Messages">🔔{% if notif_messages %}<span class="bubble">{{ notif_messages }}</span>{% endif %}</a>
+            {% endif %}
+          {% endif %}
+        </div>
+      </article>
+    {% else %}
+      <div class="muted">{{ t('no_tasks') }}</div>
+    {% endfor %}
+  </div>
+{% endblock %}
+

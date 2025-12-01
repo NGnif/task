@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}{{ (t('edit') if task else t('new_task')) }} · {{ t('app_name') }}{% endblock %}
+{% block content %}
+  <h1>{{ t('edit') if task else t('new_task') }}</h1>
+  <form method="post" class="form">
+    <label>{{ t('title') }}
+      <input type="text" name="title" value="{{ task.title if task else '' }}" required />
+    </label>
+    <label>{{ t('description') }}
+      <textarea name="description" rows="4">{{ task.description if task else '' }}</textarea>
+    </label>
+    <div class="row">
+      <label>{{ t('status') }}
+        <select name="status">
+          {% for s in ['todo','in_progress','done'] %}
+            <option value="{{ s }}" {% if task and task.status==s %}selected{% endif %}>{{ status_label(s) }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>{{ t('priority') }}
+        <select name="priority">
+          {% for p in ['low','medium','high'] %}
+            <option value="{{ p }}" {% if task and task.priority==p %}selected{% endif %}>{{ priority_label(p) }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>{{ t('due_date') }}
+        <input type="date" name="due_date" value="{{ task.due_date.isoformat() if task and task.due_date else '' }}" />
+      </label>
+    </div>
+    {% if is_owner %}
+      <label>{{ t('assignee') }}
+        <select name="assignee_id" required>
+          <option value="">Select user</option>
+          {% for u in users %}
+            <option value="{{ u.id }}" {% if task and task.assignee_id==u.id %}selected{% endif %}>{{ u.username }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    {% endif %}
+
+    <div class="actions">
+      <a class="btn" href="{{ url_for('main.tasks') }}">{{ t('cancel') }}</a>
+      <button class="btn primary" type="submit">{{ t('save') }}</button>
+    </div>
+  </form>
+{% endblock %}

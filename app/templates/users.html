@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}{{ t('users') }} - {{ t('app_name') }}{% endblock %}
+{% block content %}
+  <div class="header-row">
+    <h1>{{ t('users') }}</h1>
+  </div>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>{{ t('username') }}</th>
+        <th>{{ t('actions') }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+        <tr>
+          <td>{{ u.username }} ({{ t('owner') if u.role=='owner' else t('worker') }})</td>
+          <td class="actions">
+            {% if u.role=='worker' %}
+              <form method="post" action="{{ url_for('main.delete_user', user_id=u.id) }}" style="display:inline" onsubmit="return confirm('Delete this worker and reassign tasks to owner?');">
+                <button class="btn danger" type="submit">{{ t('delete') }}</button>
+              </form>
+            {% else %}
+              <span class="muted">—</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="2" class="muted">{{ t('no_users') }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Mobile cards view -->
+  <div class="cards" role="list">
+    {% for u in users %}
+      <article class="card" role="listitem">
+        <div class="card-head">
+          <div class="card-title">{{ u.username }}</div>
+          <div class="badges">
+            <span class="badge">{{ t('owner') if u.role=='owner' else t('worker') }}</span>
+          </div>
+        </div>
+        <div class="card-actions">
+          {% if u.role=='worker' %}
+            <form method="post" action="{{ url_for('main.delete_user', user_id=u.id) }}" onsubmit="return confirm('Delete this worker and reassign tasks to owner?');">
+              <button class="btn danger" type="submit">{{ t('delete') }}</button>
+            </form>
+          {% else %}
+            <span class="muted">—</span>
+          {% endif %}
+        </div>
+      </article>
+    {% else %}
+      <div class="muted">{{ t('no_users') }}</div>
+    {% endfor %}
+  </div>
+{% endblock %}

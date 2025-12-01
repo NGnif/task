@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}{{ t('login') }} · {{ t('app_name') }}{% endblock %}
+{% block content %}
+  <h1>{{ t('login') }}</h1>
+  {% if error %}
+    <div class="error">{{ error }}</div>
+  {% endif %}
+  <form method="post" class="form">
+    <label>{{ t('username') }}
+      <input type="text" name="username" required />
+    </label>
+    <label>{{ t('password') }}
+      <input type="password" name="password" required />
+    </label>
+    <button type="submit" class="btn primary">{{ t('login') }}</button>
+  </form>
+  <p>
+    {% if not users_exist %}
+      <a href="{{ url_for('auth.register') }}">{{ t('create_owner') }}</a>
+    {% endif %}
+  </p>
+{% endblock %}

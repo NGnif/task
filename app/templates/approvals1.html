@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}{{ t('approvals') }} - {{ t('app_name') }}{% endblock %}
+{% block content %}
+  <div class="header-row"><h1>{{ t('approvals') }}</h1></div>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>{{ t('title') }}</th>
+        <th>{{ t('assignee') }}</th>
+        <th>{{ t('note') }}</th>
+        <th>{{ t('actions') }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in requests %}
+        <tr>
+          <td>#{{ r.id }}</td>
+          <td>{{ r.task.title if r.task else '-' }}</td>
+          <td>{{ r.requested_by.username if r.requested_by else '-' }}</td>
+          <td>{% if r.note %}{{ r.note }}{% else %}<span class="muted">—</span>{% endif %}</td>
+          <td class="actions">
+            <form method="post" action="{{ url_for('main.approvals_approve', req_id=r.id) }}" style="display:inline">
+              <input type="text" name="decision_note" placeholder="{{ t('decision_note') }}" />
+              <button class="btn" type="submit">{{ t('approve') }}</button>
+            </form>
+            <form method="post" action="{{ url_for('main.approvals_reject', req_id=r.id) }}" style="display:inline">
+              <input type="text" name="decision_note" placeholder="{{ t('decision_note') }}" />
+              <button class="btn danger" type="submit">{{ t('reject') }}</button>
+            </form>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="5" class="muted">{{ t('no_tasks') }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
+

@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block title %}{{ t('approvals') }} - {{ t('app_name') }}{% endblock %}
+
+{% block content %}
+  <div class="header-row"><h1>{{ t('approvals') }}</h1></div>
+
+  {# --- Mobile helpers & overrides (safe to keep inline) --- #}
+  <style>
+    /* Make wide tables usable on phones */
+    .table-responsive{ width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    /* Preserve line breaks/long words in notes */
+    .preserve-newlines{ white-space:pre-wrap; word-break:break-word; }
+    /* Let inputs/buttons wrap nicely */
+    .inline-form{ display:inline-flex; gap:.5rem; align-items:center; flex-wrap:wrap; }
+
+    /* Your global CSS hides .table under 720px; override that here */
+    @media (max-width:720px){
+      .table{ display:table; }                /* un-hide the table */
+      .actions{ flex-wrap:wrap; }             /* avoid squishing buttons */
+      .actions input[type="text"]{ min-width:160px; }
+    }
+  </style>
+
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">{{ t('title') }}</th>
+          <th scope="col">{{ t('assignee') }}</th>
+          <th scope="col">{{ t('note') }}</th>
+          <th scope="col">{{ t('actions') }}</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for r in requests %}
+          <tr>
+            <td>#{{ r.id }}</td>
+
+            <td>
+              {% if r.task %}
+                <a href="{{ url_for('main.task_detail', task_id=r.task.id) }}">{{ r.task.title }}</a>
+              {% else %}
+                <span class="muted">—</span>
+              {% endif %}
+            </td>
+
+            <td>
+              {% if r.requested_by %}
+                <a href="{{ url_for('main.user_profile', username=r.requested_by.username) }}">{{ r.requested_by.username }}</a>
+              {% else %}
+                <span class="muted">—</span>
+              {% endif %}
+            </td>
+
+            <td>
+              {% if r.note %}
+                <div class="preserve-newlines">{{ r.note | e }}</div>
+              {% else %}
+                <span class="muted">—</span>
+              {% endif %}
+            </td>
+
+            <td class="actions">
+              <form method="post" action="{{ url_for('main.approvals_approve', req_id=r.id) }}" class="inline-form">
+                {% if csrf_token %}{{ csrf_token() }}{% endif %}
+                <label for="approve_note_{{ r.id }}" class="sr-only">{{ t('decision_note') }}</label>
+                <input id="approve_note_{{ r.id }}" type="text" name="decision_note" placeholder="{{ t('decision_note') }}" autocomplete="off" />
+                <button class="btn primary" type="submit">{{ t('approve') }}</button>
+              </form>
+
+              <form method="post" action="{{ url_for('main.approvals_reject', req_id=r.id) }}" class="inline-form">
+                {% if csrf_token %}{{ csrf_token() }}{% endif %}
+                <label for="reject_note_{{ r.id }}" class="sr-only">{{ t('decision_note') }}</label>
+                <input id="reject_note_{{ r.id }}" type="text" name="decision_note" placeholder="{{ t('decision_note') }}" autocomplete="off" />
+                <button class="btn danger" type="submit">{{ t('reject') }}</button>
+              </form>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="5" class="muted">{{ t('no_tasks') }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {# Screen-reader only utility (if not already in your global CSS) #}
+  <style>
+    .sr-only{
+      position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+      overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+    }
+  </style>
+{% endblock %}

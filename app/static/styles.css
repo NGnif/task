@@ -1,0 +1,714 @@
+/* Facebook-like light theme */
+:root {
+  --bg:#f0f2f5;
+  --panel:#ffffff;
+  --text:#1c1e21;
+  --muted:#65676b;
+  --primary:#1877F2;
+  --danger:#b3e6cc; /* custom non-red danger */
+  --border:#e4e6eb;
+  --ok:#31a24c;
+  --warn:#f59e0b;
+  --navbar-bg:#1877F2;
+  --navbar-fg:#ffffff;
+  --navbar-border:#1463d8;
+  --alert:#ef4444; /* For alert/bell notifications */
+}
+
+*{
+  box-sizing:border-box;
+}
+
+html,body{
+  margin:0;
+  padding:0;
+  background:var(--bg);
+  color:var(--text);
+  font:14px/1.4 system-ui,Segoe UI,Roboto,Arial;
+  -webkit-text-size-adjust:100%;
+  -webkit-tap-highlight-color:rgba(0,0,0,0);
+}
+
+body{
+  padding-bottom:env(safe-area-inset-bottom);
+}
+
+.container{
+  max-width:1000px;
+  margin:0 auto;
+  padding:16px;
+  padding-left:calc(16px + env(safe-area-inset-left));
+  padding-right:calc(16px + env(safe-area-inset-right));
+}
+
+.navbar{
+  background:var(--navbar-bg);
+  border-bottom:1px solid var(--navbar-border);
+  position:sticky;
+  top:0;
+  z-index:50;
+  padding-top:env(safe-area-inset-top);
+}
+
+.navbar .container{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.brand a{
+  color:var(--navbar-fg);
+  text-decoration:none;
+  font-weight:600;
+}
+
+.nav-right{
+  display:flex;
+  gap:12px;
+  align-items:center;
+}
+
+.user{
+  color:var(--navbar-fg);
+  opacity:.85;
+}
+
+.nav-toggle{
+  display:none;
+  appearance:none;
+  border:1px solid rgba(255,255,255,.25);
+  background:transparent;
+  color:var(--navbar-fg);
+  border-radius:8px;
+  padding:8px 10px;
+  line-height:1;
+  font-size:18px;
+}
+
+.flash{
+  list-style:none;
+  padding:0;
+  margin:12px 0;
+}
+
+.flash li{
+  background:#e7f3ff;
+  color:#1c1e21;
+  padding:8px 12px;
+  border:1px solid #cfe3ff;
+  border-radius:6px;
+}
+
+.form{
+  display:grid;
+  gap:12px;
+  max-width:600px;
+}
+
+label{
+  display:grid;
+  gap:6px;
+  color:var(--muted);
+}
+
+input,
+textarea,
+select{
+  background:#ffffff;
+  border:1px solid var(--border);
+  border-radius:6px;
+  color:var(--text);
+  padding:10px;
+}
+
+/* Base button style */
+.btn{
+  background:#e4e6eb;
+  color:#1c1e21;
+  border:1px solid #dadde1;
+  padding:10px 14px;
+  border-radius:8px;
+  text-decoration:none;
+  display:inline-block;
+  touch-action:manipulation;
+}
+
+/* Primary button */
+.btn.primary{
+  background:var(--primary);
+  border-color:transparent;
+  color:#ffffff;
+  font-weight:600;
+}
+
+/* Our custom 'danger' (non-Bootstrap) */
+.btn.danger{
+  background:var(--danger);
+  border-color:transparent;
+}
+
+.table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:12px;
+}
+
+.table th,
+.table td{
+  border-bottom:1px solid var(--border);
+  padding:8px;
+  text-align:left;
+  vertical-align:top;
+}
+
+.muted{
+  color:var(--muted);
+}
+
+.header-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.btn-row{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.filter{
+  display:flex;
+  gap:8px;
+  margin:8px 0;
+}
+
+.row-status-done .title{
+  text-decoration:line-through;
+  color:var(--muted);
+}
+
+.row{
+  display:flex;
+  gap:12px;
+}
+
+.actions{
+  display:flex;
+  gap:8px;
+  margin-top:8px;
+}
+
+.error{
+  background:#fee2e2;
+  color:#7f1d1d;
+  padding:8px 12px;
+  border:1px solid #fecaca;
+  border-radius:6px;
+  margin-bottom:12px;
+}
+
+/* Mobile task cards */
+.cards{
+  display:none;
+}
+
+.card{
+  background:#ffffff;
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:12px;
+  display:grid;
+  gap:8px;
+  color:#1c1e21;
+  position:relative; /* For bell positioning */
+}
+
+.card-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:8px;
+}
+
+.card-title{
+  font-weight:600;
+  padding-right:30px; /* Space for the bell */
+}
+
+.card-desc{
+  color:#4b5563;
+}
+
+.clamp-2{
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  line-clamp:2;
+  overflow:hidden;
+}
+
+.card-meta{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  color:#6b7280;
+  font-size:13px;
+}
+
+.card-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.badges{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+
+.badge{
+  font-size:12px;
+  padding:2px 8px;
+  border-radius:999px;
+  border:1px solid #e4e6eb;
+  background:#f0f2f5;
+  color:#1c1e21;
+}
+
+.badge.warn{
+  background:#fcd34d;
+  color:#854d0e;
+  border-color:#f59e0b;
+}
+
+.badge.status-done{
+  background:#dcfce7;
+  color:#065f46;
+  border-color:#86efac;
+}
+
+.badge.status-in_progress{
+  background:#fef9c3;
+  color:#854d0e;
+  border-color:#fde68a;
+}
+
+.badge.status-todo{
+  background:#e5e7eb;
+  color:#111827;
+}
+
+.badge.prio-high{
+  background:#fee2e2;
+  color:#7f1d1d;
+  border-color:#fecaca;
+}
+
+.badge.prio-medium{
+  background:#fef3c7;
+  color:#854d0e;
+  border-color:#fde68a;
+}
+
+.badge.prio-low{
+  background:#e0f2fe;
+  color:#075985;
+  border-color:#bae6fd;
+}
+
+/* =========================================================
+   CARD BELL NOTIFICATION INDICATOR
+   ========================================================= */
+.card-bell {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--muted);
+  color: white;
+  font-size: 12px;
+  transition: all 0.3s ease;
+  opacity: 0.6;
+}
+
+/* Bell with events/notifications */
+.card-bell.has-events {
+  background: var(--alert);
+  opacity: 1;
+  animation: pulse-bell 2s infinite;
+  box-shadow: 0 0 0 rgba(239, 68, 68, 0.4);
+}
+
+/* Pulse animation for bell with events */
+@keyframes pulse-bell {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+/* Bell with different event types */
+.card-bell.event-urgent {
+  background: #dc2626; /* Darker red for urgency */
+  animation: pulse-urgent 1.5s infinite;
+}
+
+@keyframes pulse-urgent {
+  0% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(220, 38, 38, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+  }
+}
+
+.card-bell.event-warning {
+  background: var(--warn);
+  animation: pulse-warning 2s infinite;
+}
+
+@keyframes pulse-warning {
+  0% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(245, 158, 11, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+  }
+}
+
+.card-bell.event-info {
+  background: var(--primary);
+}
+
+.card-bell.event-success {
+  background: var(--ok);
+}
+
+/* Bell with notification count */
+.card-bell.with-count::after {
+  content: attr(data-count);
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: var(--alert);
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 10px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+}
+
+/* =========================================================
+   CHAT MESSAGES - INCREASED FONT SIZE
+   ========================================================= */
+.chat{
+  display:grid;
+  gap:12px;
+  margin:12px 0 8px;
+  max-height:60vh;
+  overflow:auto;
+  padding:12px;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:12px;
+}
+
+.msg{
+  display:grid;
+  gap:6px;
+}
+
+.msg .bubble{
+  display:inline-block;
+  padding:12px 16px;
+  border-radius:18px;
+  max-width:85%;
+  word-wrap:break-word;
+  white-space:pre-wrap;
+  font-size:16px !important; /* Increased font size */
+  line-height:1.4;
+}
+
+.msg.me{
+  justify-items:end;
+}
+
+.msg.me .bubble{
+  background:#f59e0b;
+  color:#111827;
+  border:1px solid #b45309;
+  font-weight:500;
+}
+
+.msg.them .bubble{
+  background:#f3f4f6;
+  color:#111827;
+  border:1px solid #e5e7eb;
+  font-weight:500;
+}
+
+.msg .time{
+  font-size:13px;
+  color:var(--muted);
+  padding:0 8px;
+}
+
+.send-box textarea{
+  resize:vertical;
+  font-size:16px !important; /* Larger font for message input too */
+}
+
+@supports (height: 1dvh){
+  .chat{
+    max-height:60dvh;
+  }
+}
+
+/* Responsive tweaks */
+@media (max-width: 720px){
+  .container{
+    padding:12px;
+  }
+  .filter{
+    flex-wrap:wrap;
+  }
+  .table{
+    display:none;
+  }
+  .cards{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:12px;
+  }
+  input,
+  textarea,
+  select{
+    font-size:16px; /* prevent iOS zoom */
+  }
+
+  .nav-toggle{
+    display:inline-flex;
+  }
+  .nav-right{
+    display:none;
+    position:absolute;
+    left:12px;
+    right:12px;
+    top:100%;
+    background:#ffffff;
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:10px;
+    gap:8px;
+    flex-wrap:wrap;
+    box-shadow:0 8px 24px rgba(0,0,0,.12);
+  }
+  .navbar.open .nav-right{
+    display:flex;
+  }
+  .navbar .btn{
+    width:100%;
+    justify-content:center;
+  }
+  .navbar .nav-right .btn{
+    background:#e4e6eb;
+    color:#1c1e21;
+    border-color:#dadde1;
+  }
+  .navbar .nav-right .btn.primary{
+    background:var(--primary);
+    color:#ffffff;
+    border-color:transparent;
+  }
+  .navbar .nav-right .user{
+    color:#111827;
+    opacity:1;
+  }
+  .btn{
+    min-height:44px;
+  }
+  
+  /* Mobile chat adjustments */
+  .msg .bubble{
+    font-size:17px !important; /* Slightly larger on mobile */
+    max-width:90%;
+    padding:14px 18px;
+  }
+  
+  /* Mobile bell adjustments */
+  .card-bell {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+  }
+}
+
+/* Navbar button styling on colored header */
+.navbar .btn{
+  background:rgba(255,255,255,.10);
+  color:#fff;
+  border-color:rgba(255,255,255,.25);
+  position:relative;
+}
+
+/* Card bell numeric bubble (match navbar style) */
+.card .btn.bell{
+  position:relative;
+}
+.card .btn.bell .bubble{
+  position:absolute;
+  top:-6px;
+  right:-6px;
+  background:#ef4444;
+  color:#fff;
+  border-radius:999px;
+  font-size:11px;
+  line-height:1;
+  padding:3px 6px;
+  min-width:18px;
+  text-align:center;
+  border:2px solid #ffffff; /* ring on white cards */
+}
+
+.navbar .btn.primary{
+  background:var(--primary);
+  color:#ffffff;
+  border-color:transparent;
+}
+
+/* Bubble notification for nav buttons */
+.navbar .bubble{
+  position:absolute;
+  top:-6px;
+  right:-6px;
+  background:#ef4444;
+  color:#fff;
+  border-radius:999px;
+  font-size:11px;
+  line-height:1;
+  padding:3px 6px;
+  border:2px solid var(--navbar-bg);
+  min-width:18px;
+  text-align:center;
+}
+
+.btn.bell{
+  font-size:16px;
+}
+
+/* =========================================================
+   COMPLETE OVERRIDES: NO RED DELETE + BOLD/LARGER TEXT
+   ========================================================= */
+
+/* All buttons: bold + bigger text */
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-success,
+.btn-info,
+.btn-warning,
+.btn-danger {
+  font-weight:700 !important;
+  font-size:16px !important;
+  border-radius:8px !important;
+}
+
+/* Override ALL delete/danger buttons (Bootstrap etc.) - NO RED */
+.btn-danger,
+.btn.btn-danger,
+button.btn-danger,
+a.btn-danger,
+.actions .btn.danger,
+.card-actions .btn.danger {
+  background-color:#b3e6cc !important;
+  border-color:#b3e6cc !important;
+  color:#111827 !important;
+}
+
+/* Danger button hover states */
+.btn-danger:hover,
+.btn.btn-danger:hover,
+button.btn-danger:hover,
+a.btn-danger:hover {
+  background-color:#9dd9ba !important;
+  border-color:#9dd9ba !important;
+  color:#111827 !important;
+}
+
+/* Alert/danger contexts */
+.alert-danger,
+.alert.alert-danger,
+.bg-danger {
+  background-color: var(--danger) !important;
+  border-color: var(--danger) !important;
+  color: #111827 !important;
+}
+
+/* Text danger color */
+.text-danger {
+  color: #111827 !important;
+}
+
+/* Form validation */
+input:invalid,
+textarea:invalid,
+select:invalid {
+  border-color: var(--danger) !important;
+}
+
+.form-error {
+  color: #111827 !important;
+  background-color: var(--danger) !important;
+  border: 1px solid var(--danger) !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  padding: 12px !important;
+}
+
+/* Status indicators */
+.status-danger {
+  background-color: var(--danger) !important;
+  color: #111827 !important;
+}
+
+/* Make action buttons consistent */
+.actions .btn,
+.card-actions .btn {
+  font-weight:700 !important;
+  font-size:16px !important;
+  border-radius:8px !important;
+  padding:10px 18px !important;
+  min-height:44px;
+}
+
+/* Ensure the bell alert uses custom danger color */
+.btn.bell.bell-alert{
+  background-color:var(--danger) !important;
+  border-color:var(--danger) !important;
+  color:#111827 !important;
+}

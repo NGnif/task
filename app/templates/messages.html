@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block title %}{{ t('messages') }} - {{ t('app_name') }}{% endblock %}
+{% block content %}
+  <div class="header-row">
+    <h1>{{ t('messages') }}</h1>
+    {% if workers %}
+      <form method="get">
+        <select onchange="if(this.value){window.location=this.value;}">
+          {% for w in workers %}
+            <option value="{{ url_for('main.messages_with', user_id=w.id) }}" {% if w.id == other.id %}selected{% endif %}>{{ w.username }}</option>
+          {% endfor %}
+        </select>
+      </form>
+    {% endif %}
+    {% if current_user.role=='owner' and other and other.role=='worker' %}
+      <div class="btn-row">
+        <form method="post" action="{{ url_for('main.delete_thread', user_id=other.id) }}" style="display:inline" onsubmit="return confirm('Delete this conversation?');">
+          <button class="btn danger" type="submit">{{ t('delete_conversation') }}</button>
+        </form>
+        <form method="post" action="{{ url_for('main.delete_user', user_id=other.id) }}" style="display:inline" onsubmit="return confirm('Delete this worker and reassign tasks to owner?');">
+          <button class="btn danger" type="submit">{{ t('delete_worker') }}</button>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+
+  {% if current_user.is_owner and pending_reqs %}
+    <div class="header-row"><h2>{{ t('approvals') }}</h2></div>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>{{ t('title') }}</th>
+          <th>{{ t('note') }}</th>
+          <th>{{ t('actions') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in pending_reqs %}
+          <tr>
+            <td>#{{ r.id }}</td>
+            <td>{{ r.task.title if r.task else '-' }}</td>
+            <td>{% if r.note %}{{ r.note }}{% else %}<span class="muted">—</span>{% endif %}</td>
+            <td class="actions">
+              <form method="post" action="{{ url_for('main.approvals_approve', req_id=r.id) }}" style="display:inline">
+                <input type="text" name="decision_note" placeholder="{{ t('decision_note') }}" />
+                <button class="btn" type="submit">{{ t('approve') }}</button>
+              </form>
+              <form method="post" action="{{ url_for('main.approvals_reject', req_id=r.id) }}" style="display:inline">
+                <input type="text" name="decision_note" placeholder="{{ t('decision_note') }}" />
+                <button class="btn danger" type="submit">{{ t('reject') }}</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+
+  <div class="chat" dir="{{ 'rtl' if dir_rtl else 'ltr' }}">
+    {% for m in thread %}
+      <div class="msg {{ 'me' if m.sender_id==current_user.id else 'them' }}">
+        <div class="bubble">{{ m.body }}</div>
+        {% set b = (m.body or '') %}
+        {% set action = None %}
+        {% if 'Request to mark task' in b %}
+          {% set action = t('request_done') %}
+        {% elif 'was approved' in b %}
+          {% set action = t('approve') %}
+        {% elif 'was rejected' in b %}
+          {% set action = t('reject') %}
+        {% elif 'was reopened' in b %}
+          {% set action = t('reopen') %}
+        {% elif 'was marked done' in b %}
+          {% set action = t('complete') %}
+        {% endif %}
+        <div class="time">{{ m.sender.username if m.sender else '-' }} • {{ m.created_at.strftime('%Y-%m-%d %H:%M') }}{% if action %} • {{ action }}{% endif %}
+          {% if current_user.role=='owner' %}
+            <form method="post" action="{{ url_for('main.delete_message', message_id=m.id) }}" style="display:inline" onsubmit="return confirm('Delete this message?');">
+              <button class="btn danger" type="submit">{{ t('delete') }}</button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    {% else %}
+      <div class="muted">{{ t('no_messages') }}</div>
+    {% endfor %}
+  </div>
+
+  <form method="post" class="form send-box">
+    <input type="hidden" name="receiver_id" value="{{ other.id }}" />
+    <label>{{ t('type_message') }}
+      <textarea name="body" rows="2" required></textarea>
+    </label>
+    <div class="actions">
+      <button class="btn primary" type="submit">{{ t('send') }}</button>
+    </div>
+  </form>
+{% endblock %}
+
