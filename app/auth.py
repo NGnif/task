@@ -40,6 +40,7 @@ def register():
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
         confirm = request.form.get("confirm", "")
+        role = (request.form.get("role") or "worker").strip().lower()
 
         if not username or not password:
             error = "Username and password are required"
@@ -47,19 +48,24 @@ def register():
             error = "Passwords do not match"
         elif User.query.filter_by(username=username).first():
             error = "Username already exists"
+        elif user_count > 0 and role not in {"worker", "admin"}:
+            error = "Invalid role selected"
 
         if error is None:
             user = User(username=username)
             user.set_password(password)
             # First user becomes owner, others default to worker
-            user.role = "owner" if user_count == 0 else "worker"
+            if user_count == 0:
+                user.role = "owner"
+            else:
+                user.role = role if role in {"worker", "admin"} else "worker"
             db.session.add(user)
             db.session.commit()
 
             flash("User created successfully. You can now log in.")
             return redirect(url_for("auth.login"))
 
-    return render_template("register.html", error=error)
+    return render_template("register.html", error=error, user_count=user_count)
 
 
 @auth_bp.route("/change-password", methods=["GET", "POST"])

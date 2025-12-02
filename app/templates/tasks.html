@@ -2,9 +2,9 @@
 {% block title %}{{ t('tasks') }} - {{ t('app_name') }}{% endblock %}
 {% block content %}
   <div class="header-row">
-    <h1>{{ t('dashboard') if is_owner else t('my_tasks') }}</h1>
+    <h1>{{ t('dashboard') if is_manager else t('my_tasks') }}</h1>
     <div class="btn-row">
-      {% if is_owner %}
+      {% if is_manager %}
         <a class="btn" href="{{ url_for('main.import_csv') }}">{{ t('import_csv') }}</a>
         <a class="btn primary" href="{{ url_for('main.create_task') }}">{{ t('new_task') }}</a>
       {% endif %}
@@ -19,7 +19,7 @@
         <option value="{{ s }}" {% if request.args.get('status')==s %}selected{% endif %}>{{ status_label(s) }}</option>
       {% endfor %}
     </select>
-    {% if is_owner %}
+    {% if is_manager %}
       <select name="assignee">
         <option value="">{{ t('assignee') }}</option>
         {% for u in users %}
@@ -55,7 +55,7 @@
           <td>{{ priority_label(tsk.priority) }}</td>
           <td>{% if tsk.due_date %}{{ tsk.due_date.isoformat() }}{% endif %}</td>
           <td class="actions">
-            {% if is_owner %}
+            {% if is_manager %}
               <a class="btn" href="{{ url_for('main.edit_task', task_id=tsk.id) }}">{{ t('edit') }}</a>
               {% if tsk.status != 'done' %}
                 <form method="post" action="{{ url_for('main.progress_task', task_id=tsk.id) }}" style="display:inline">
@@ -124,7 +124,7 @@
           {% if item.due_date %}<span>{{ t('due') }}: <strong>{{ item.due_date.isoformat() }}</strong></span>{% endif %}
         </div>
         <div class="card-actions">
-          {% if is_owner %}
+          {% if is_manager %}
             <a class="btn" href="{{ url_for('main.edit_task', task_id=item.id) }}">{{ t('edit') }}</a>
             {% if item.status != 'done' %}
               <form method="post" action="{{ url_for('main.progress_task', task_id=item.id) }}">
@@ -163,7 +163,7 @@
               {% endif %}
             {% endif %}
           {% endif %}
-          {% if is_owner %}
+          {% if is_manager %}
             <a class="btn bell {% if pending_map and pending_map.get(item.id) %}bell-alert{% endif %}"
                data-task-id="{{ item.id }}"
                href="{{ url_for('main.messages_with', user_id=item.assignee_id) }}"

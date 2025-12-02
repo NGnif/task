@@ -15,7 +15,7 @@
     <tbody>
       {% for u in users %}
         <tr>
-          <td>{{ u.username }} ({{ t('owner') if u.role=='owner' else t('worker') }})</td>
+          <td>{{ u.username }} ({{ t('owner') if u.role=='owner' else (t('admin') if u.role=='admin' else t('worker')) }})</td>
           <td class="actions">
             {% if u.role=='worker' %}
               <form method="post" action="{{ url_for('main.delete_user', user_id=u.id) }}" style="display:inline" onsubmit="return confirm('Delete this worker and reassign tasks to owner?');">
@@ -39,7 +39,7 @@
         <div class="card-head">
           <div class="card-title">{{ u.username }}</div>
           <div class="badges">
-            <span class="badge">{{ t('owner') if u.role=='owner' else t('worker') }}</span>
+            <span class="badge">{{ t('owner') if u.role=='owner' else (t('admin') if u.role=='admin' else t('worker')) }}</span>
           </div>
         </div>
         <div class="card-actions">

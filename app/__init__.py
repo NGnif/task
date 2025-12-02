@@ -59,7 +59,7 @@ def create_app():
                 msg_count = (
                     Message.query.filter_by(receiver_id=current_user.id, read_at=None).count()
                 )
-                if getattr(current_user, "role", None) == "owner":
+                if getattr(current_user, "role", None) in {"owner", "admin"}:
                     approvals_count = TaskCompletionRequest.query.filter_by(status="pending").count()
                 else:
                     approvals_count = TaskCompletionRequest.query.filter_by(

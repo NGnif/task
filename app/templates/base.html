@@ -18,12 +18,13 @@
         <button class="nav-toggle" aria-label="Menu">&#9776;</button>
         <div class="nav-right">
           {% if current_user.is_authenticated %}
-            <a class="btn" href="{{ url_for('main.tasks') }}">{{ t('dashboard') if current_user.role=='owner' else t('my_tasks') }}</a>
-            {% if current_user.role=='owner' %}
+            <a class="btn" href="{{ url_for('main.tasks') }}">{{ t('dashboard') if current_user.role in ['owner','admin'] else t('my_tasks') }}</a>
+            {% set role_label = t('owner') if current_user.role=='owner' else (t('admin') if current_user.role=='admin' else t('worker')) %}
+            {% if current_user.role in ['owner','admin'] %}
               <a id="approvals-link" class="btn" href="{{ url_for('main.approvals') }}">{{ t('approvals') }}{% if notif_approvals %}<span class="bubble">{{ notif_approvals }}</span>{% endif %}</a>
             {% endif %}
             <a class="btn bell {% if notif_messages %}bell-alert{% endif %}" href="{{ url_for('main.messages_root') }}" aria-label="Messages">🔔{% if notif_messages %}<span class="bubble">{{ notif_messages }}</span>{% endif %}</a>
-            <span class="user">{{ current_user.username }} ({{ t('owner') if current_user.role=='owner' else t('worker') }})</span>
+            <span class="user">{{ current_user.username }} ({{ role_label }})</span>
             {% if current_user.role=='owner' %}
               <a class="btn" href="{{ url_for('main.users') }}">{{ t('users') }}</a>
               <a class="btn" href="{{ url_for('auth.register') }}">{{ t('create_user') }}</a>

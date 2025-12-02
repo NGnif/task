@@ -37,6 +37,12 @@ class User(UserMixin, db.Model):
     def is_owner(self) -> bool:
         return self.role == "owner"
 
+    def is_admin(self) -> bool:
+        return self.role == "admin"
+
+    def is_manager(self) -> bool:
+        return self.role in {"owner", "admin"}
+
 
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)

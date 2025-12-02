@@ -39,7 +39,8 @@ docker run -e SECRET_KEY=change-me -e DATABASE_URL=sqlite:////data/app.db -p 500
 
 ## Roles and Permissions
 
-- Owner: view/manage all tasks, assign to any user, delete tasks, export all
+- Owner: top-level; manage everything (tasks, approvals), create/delete users
+- Admin: manage/approve all tasks, import/export; cannot create/delete users
 - Worker: view and manage only own tasks, cannot delete, export only own
 
 ## Deploy

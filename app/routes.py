@@ -22,6 +22,10 @@ import io
 main_bp = Blueprint("main", __name__)
 
 
+def _is_manager() -> bool:
+    return current_user.is_owner() or current_user.is_admin()
+
+
 @main_bp.route("/")
 def index():
     if not current_user.is_authenticated:
@@ -36,7 +40,9 @@ def tasks():
     assignee_id = request.args.get("assignee", "").strip()
     q = request.args.get("q", "").strip()
 
-    if current_user.is_owner():
+    is_manager = _is_manager()
+
+    if is_manager:
         query = Task.query
     else:
         query = Task.query.filter(Task.assignee_id == current_user.id)
@@ -44,7 +50,7 @@ def tasks():
     if status in {"todo", "in_progress", "done"}:
         query = query.filter(Task.status == status)
 
-    if assignee_id.isdigit() and current_user.is_owner():
+    if assignee_id.isdigit() and is_manager:
         query = query.filter(Task.assignee_id == int(assignee_id))
 
     if q:
@@ -58,7 +64,7 @@ def tasks():
 
     # For UI: pending completion requests per task (dict)
     pending_map = {}
-    if current_user.is_owner():
+    if is_manager:
         pendings = TaskCompletionRequest.query.filter_by(status="pending").all()
     else:
         pendings = TaskCompletionRequest.query.filter_by(
@@ -86,7 +92,7 @@ def tasks():
         "tasks.html",
         tasks=tasks_list,
         users=users,
-        is_owner=current_user.is_owner(),
+        is_manager=is_manager,
         pending_map=pending_map,
         owner_id=owner_id,
     )
@@ -105,8 +111,8 @@ def users():
 @main_bp.route("/tasks/create", methods=["GET", "POST"])
 @login_required
 def create_task():
-    if not current_user.is_owner():
-        flash("Only the owner can create tasks")
+    if not _is_manager():
+        flash("Only owners and admins can create tasks")
         return redirect(url_for("main.tasks"))
     users = User.query.order_by(User.username.asc()).all()
     error = None
@@ -156,14 +162,14 @@ def create_task():
     return render_template(
         "task_form.html",
         users=users,
-        is_owner=current_user.is_owner(),
+        is_manager=_is_manager(),
         task=None,
     )
 
 
 def _can_edit(task: Task) -> bool:
-    # Only owner can modify tasks
-    return current_user.is_owner()
+    # Only managers can modify tasks
+    return _is_manager()
 
 
 @main_bp.route("/tasks/<int:task_id>/edit", methods=["GET", "POST"])
@@ -171,7 +177,7 @@ def _can_edit(task: Task) -> bool:
 def edit_task(task_id: int):
     task = Task.query.get_or_404(task_id)
     if not _can_edit(task):
-        flash("Only the owner can edit tasks")
+        flash("Only owners and admins can edit tasks")
         return redirect(url_for("main.tasks"))
 
     users = User.query.order_by(User.username.asc()).all()
@@ -187,7 +193,7 @@ def edit_task(task_id: int):
         if not title:
             error = "Title is required"
 
-        if current_user.is_owner():
+        if _is_manager():
             if assignee_id.isdigit():
                 assignee = User.query.get(int(assignee_id))
                 if assignee is None:
@@ -220,7 +226,7 @@ def edit_task(task_id: int):
     return render_template(
         "task_form.html",
         users=users,
-        is_owner=current_user.is_owner(),
+        is_manager=_is_manager(),
         task=task,
     )
 
@@ -230,7 +236,7 @@ def edit_task(task_id: int):
 def toggle_task(task_id: int):
     task = Task.query.get_or_404(task_id)
     if not _can_edit(task):
-        flash("Only the owner can modify tasks")
+        flash("Only owners and admins can modify tasks")
         return redirect(url_for("main.tasks"))
     new_status = "done" if task.status != "done" else "todo"
     task.status = new_status
@@ -244,14 +250,14 @@ def toggle_task(task_id: int):
             req.status = "rejected"
             req.decision_by_id = current_user.id
             req.decision_at = datetime.utcnow()
-            req.decision_note = "Reopened by owner"
+            req.decision_note = "Reopened by manager"
             try:
                 if req.requested_by_id and req.requested_by_id != current_user.id:
                     db.session.add(
                         Message(
                             sender_id=current_user.id,
                             receiver_id=req.requested_by_id,
-                            body=f"Task #{task.id} '{task.title}' was reopened by owner.",
+                            body=f"Task #{task.id} '{task.title}' was reopened by a manager.",
                         )
                     )
             except Exception:
@@ -285,7 +291,7 @@ def toggle_task(task_id: int):
                     Message(
                         sender_id=current_user.id,
                         receiver_id=task.assignee_id,
-                        body=f"Task #{task.id} '{task.title}' was marked done by owner.",
+                        body=f"Task #{task.id} '{task.title}' was marked done by a manager.",
                     )
                 )
             except Exception:
@@ -300,13 +306,13 @@ def toggle_task(task_id: int):
 def progress_task(task_id: int):
     task = Task.query.get_or_404(task_id)
     # Owner or assigned worker can update between todo <-> in_progress
-    if not (current_user.is_owner() or task.assignee_id == current_user.id):
+    if not (_is_manager() or task.assignee_id == current_user.id):
         flash("You do not have permission to update this task")
         return redirect(url_for("main.tasks"))
 
     # Workers cannot change tasks that are already done
-    if task.status == "done" and not current_user.is_owner():
-        flash("Only the owner can modify completed tasks")
+    if task.status == "done" and not _is_manager():
+        flash("Only managers can modify completed tasks")
         return redirect(url_for("main.tasks"))
 
     state = (request.form.get("state") or "").strip()
@@ -321,8 +327,8 @@ def progress_task(task_id: int):
 @login_required
 def delete_task(task_id: int):
     task = Task.query.get_or_404(task_id)
-    if not current_user.is_owner():
-        flash("Only the owner can delete tasks")
+    if not _is_manager():
+        flash("Only owners and admins can delete tasks")
         return redirect(url_for("main.tasks"))
     # Clean up related completion requests to avoid FK issues
     try:
@@ -339,7 +345,7 @@ def delete_task(task_id: int):
 @login_required
 def export_csv():
     # Owner exports all; workers export own tasks
-    if current_user.is_owner():
+    if _is_manager():
         query = Task.query
     else:
         query = Task.query.filter(Task.assignee_id == current_user.id)
@@ -388,8 +394,8 @@ def export_csv():
 @main_bp.route("/tasks/import", methods=["GET", "POST"])
 @login_required
 def import_csv():
-    if not current_user.is_owner():
-        flash("Only the owner can import tasks")
+    if not _is_manager():
+        flash("Only owners and admins can import tasks")
         return redirect(url_for("main.tasks"))
     results = None
     errors = []
@@ -474,12 +480,12 @@ def import_csv():
                     )
 
             # Determine assignee respecting roles
-            if current_user.is_owner():
+            if _is_manager():
                 assignee = None
                 if assignee_name:
                     assignee = User.query.filter_by(username=assignee_name).first()
-                    if not assignee and assignee_name.lower() in {"owner"}:
-                        assignee = User.query.filter_by(role="owner").first()
+                    if not assignee and assignee_name.lower() in {"owner", "admin"}:
+                        assignee = User.query.filter_by(role=assignee_name.lower()).first()
                     if not assignee:
                         skipped += 1
                         errors.append(f"Row {i}: unknown assignee '{assignee_name}'")
@@ -545,7 +551,7 @@ def notifications_poll():
 
     # Approvals count
     try:
-        if current_user.is_owner():
+        if _is_manager():
             appr_count = TaskCompletionRequest.query.filter_by(status="pending").count()
         else:
             appr_count = TaskCompletionRequest.query.filter_by(
@@ -557,7 +563,7 @@ def notifications_poll():
     # Pending tasks for attention (exclude ones already done)
     pending_ids = []
     try:
-        if current_user.is_owner():
+        if _is_manager():
             pendings = TaskCompletionRequest.query.filter_by(status="pending").all()
         else:
             pendings = TaskCompletionRequest.query.filter_by(
@@ -577,7 +583,7 @@ def notifications_poll():
         unread_senders = {m.sender_id for m in unread_msgs}
         msg_task_ids = []
         if unread_senders:
-            if current_user.is_owner():
+            if _is_manager():
                 # Owner: highlight tasks assigned to workers who have unread messages
                 try:
                     rows = (
@@ -622,7 +628,7 @@ def _get_owner() -> User | None:
 @main_bp.route("/messages")
 @login_required
 def messages_root():
-    if current_user.is_owner():
+    if _is_manager():
         # Prefer the most recent unread conversation, if any
         try:
             recent_unread = (
@@ -639,7 +645,7 @@ def messages_root():
 
         user = User.query.filter(User.role == "worker").order_by(User.username.asc()).first()
         if not user:
-            flash("No workers yet. Create one to start messaging.")
+            flash("No workers yet. The owner can create one from the Users page.")
             return redirect(url_for("main.tasks"))
         return redirect(url_for("main.messages_with", user_id=user.id))
     else:
@@ -656,9 +662,9 @@ def messages_with(user_id: int):
     other = User.query.get_or_404(user_id)
 
     # Permissions: workers may only talk with owner; owner may message any worker
-    if current_user.is_owner():
+    if _is_manager():
         if other.role != "worker":
-            flash("Owners can only open conversations with workers")
+            flash("Managers can only open conversations with workers")
             return redirect(url_for("main.messages_root"))
     else:
         owner = _get_owner()
@@ -694,7 +700,7 @@ def messages_with(user_id: int):
             m.read_at = now
         # If a worker just read owner's messages, inform the owner
         try:
-            if current_user.role == "worker" and other.role == "owner":
+            if current_user.role == "worker" and other.role in {"owner", "admin"}:
                 last_ts = max((m.created_at for m in unread_incoming), default=now)
                 body = f"I have read your message(s). Latest at {last_ts.strftime('%Y-%m-%d %H:%M')}."
                 db.session.add(Message(sender_id=current_user.id, receiver_id=other.id, body=body))
@@ -706,11 +712,11 @@ def messages_with(user_id: int):
 
     # Owner list of workers for quick switching
     workers = []
-    if current_user.is_owner():
+    if _is_manager():
         workers = User.query.filter(User.role == "worker").order_by(User.username.asc()).all()
 
     pending_reqs = []
-    if current_user.is_owner():
+    if _is_manager():
         pending_reqs = (
             TaskCompletionRequest.query.filter_by(status="pending", requested_by_id=other.id)
             .order_by(TaskCompletionRequest.created_at.asc())
@@ -728,7 +734,7 @@ def delete_user(user_id: int):
         flash("Only the owner can delete users")
         return redirect(url_for("main.messages_root"))
     if user.role != "worker":
-        flash("You cannot delete the owner account")
+        flash("Only worker accounts can be deleted")
         return redirect(url_for("main.messages_root"))
 
     owner = _get_owner()
@@ -773,8 +779,8 @@ def delete_user(user_id: int):
 @login_required
 def delete_message(message_id: int):
     msg = Message.query.get_or_404(message_id)
-    if not current_user.is_owner():
-        flash("Only the owner can delete messages")
+    if not _is_manager():
+        flash("Only managers can delete messages")
         return redirect(url_for("main.messages_root"))
     other_id = msg.sender_id if msg.sender_id != current_user.id else msg.receiver_id
     db.session.delete(msg)
@@ -786,12 +792,12 @@ def delete_message(message_id: int):
 @main_bp.route("/messages/<int:user_id>/delete-thread", methods=["POST"])
 @login_required
 def delete_thread(user_id: int):
-    if not current_user.is_owner():
-        flash("Only the owner can delete messages")
+    if not _is_manager():
+        flash("Only managers can delete messages")
         return redirect(url_for("main.messages_root"))
     other = User.query.get_or_404(user_id)
     if other.role != "worker":
-        flash("Owners can only manage threads with workers")
+        flash("Managers can only manage threads with workers")
         return redirect(url_for("main.messages_root"))
     try:
         Message.query.filter(
@@ -810,13 +816,13 @@ def delete_thread(user_id: int):
     return redirect(url_for("main.messages_with", user_id=other.id))
 
 
-# Worker: request completion (requires owner approval)
+# Worker: request completion (requires manager approval)
 @main_bp.route("/tasks/<int:task_id>/request-complete", methods=["POST"])
 @login_required
 def request_complete(task_id: int):
     task = Task.query.get_or_404(task_id)
-    if current_user.is_owner():
-        flash("Owners do not need approval; use Complete instead")
+    if _is_manager():
+        flash("Managers do not need approval; use Complete instead")
         return redirect(url_for("main.tasks"))
     if task.assignee_id != current_user.id:
         flash("You can only request completion for your own tasks")
@@ -861,8 +867,8 @@ def request_complete(task_id: int):
 @main_bp.route("/approvals")
 @login_required
 def approvals():
-    if not current_user.is_owner():
-        flash("Only owner can view approvals")
+    if not _is_manager():
+        flash("Only managers can view approvals")
         return redirect(url_for("main.tasks"))
     pending = (
         TaskCompletionRequest.query.filter_by(status="pending")
@@ -876,8 +882,8 @@ def approvals():
 @main_bp.route("/approvals/<int:req_id>/approve", methods=["POST"])
 @login_required
 def approvals_approve(req_id: int):
-    if not current_user.is_owner():
-        flash("Only owner can approve")
+    if not _is_manager():
+        flash("Only managers can approve")
         return redirect(url_for("main.tasks"))
     req = TaskCompletionRequest.query.get_or_404(req_id)
     if req.status != "pending":
@@ -912,8 +918,8 @@ def approvals_approve(req_id: int):
 @main_bp.route("/approvals/<int:req_id>/reject", methods=["POST"])
 @login_required
 def approvals_reject(req_id: int):
-    if not current_user.is_owner():
-        flash("Only owner can reject")
+    if not _is_manager():
+        flash("Only managers can reject")
         return redirect(url_for("main.tasks"))
     req = TaskCompletionRequest.query.get_or_404(req_id)
     if req.status != "pending":
